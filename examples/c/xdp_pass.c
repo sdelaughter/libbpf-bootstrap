@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/resource.h>
 #include <bpf/libbpf.h>
-#include "xdp_pass.skel.h"
+#include "xdppass.skel.h"
 
 static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
 {
@@ -13,7 +13,7 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
 
 int main(int argc, char **argv)
 {
-	struct xdp_pass_bpf *skel;
+	struct xdppass_bpf *skel;
 	int err;
 
 	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	libbpf_set_print(libbpf_print_fn);
 
 	/* Open BPF application */
-	skel = xdp_pass_bpf__open();
+	skel = xdppass_bpf__open();
 	if (!skel) {
 		fprintf(stderr, "Failed to open BPF skeleton\n");
 		return 1;
@@ -31,14 +31,14 @@ int main(int argc, char **argv)
 	skel->bss->my_pid = getpid();
 
 	/* Load & verify BPF programs */
-	err = xdp_pass_bpf__load(skel);
+	err = xdppass_bpf__load(skel);
 	if (err) {
 		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
 		goto cleanup;
 	}
 
 	/* Attach tracepoint handler */
-	err = xdp_pass_bpf__attach(skel);
+	err = xdppass_bpf__attach(skel);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
@@ -54,6 +54,6 @@ int main(int argc, char **argv)
 	}
 
 cleanup:
-	xdp_pass_bpf__destroy(skel);
+	xdppass_bpf__destroy(skel);
 	return -err;
 }
