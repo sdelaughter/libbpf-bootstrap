@@ -37,11 +37,11 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 	case 'v':
 		env.verbose = true;
 		break;
-	case 'd':
-		errno = i;
+	case 'i':
+		errno = 0;
 		env.ifindex = strtol(arg, NULL, 10);
 		if (errno || env.ifindex < 1) {
-			fprintf(stderr, "Invalid duration: %s\n", arg);
+			fprintf(stderr, "Invalid interface: %s\n", arg);
 			argp_usage(state);
 		}
 		break;
