@@ -126,7 +126,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Attach tracepoints */
-	err = xdptest_bpf__attach(skel);
+	int ifindex = argv[1];
+	err = xdptest_bpf__attach_xdp(skel, ifindex);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;

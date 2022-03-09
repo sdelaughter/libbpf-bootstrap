@@ -20,45 +20,45 @@ struct {
 	__uint(max_entries, 256 * 1024);
 } rb SEC(".maps");
 
-const volatile unsigned long long min_duration_ns = 0;
+// const volatile unsigned long long min_duration_ns = 0;
 //
-// SEC("xdp")
-// int xdp_pass(struct xdp_md *ctx)
-// {
-// 	struct event *e;
-//
-// 	void *data = (void *)(long)ctx->data;
-// 	void *data_end = (void *)(long)ctx->data_end;
-// 	int pkt_size = data_end - data;
-//
-// 	// pid = bpf_get_current_pid_tgid() >> 32;
-// 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-//   if (!e) {
-// 		return XDP_PASS;
-// 	}
-// 	e->pkt_size = pkt_size;
-//   bpf_ringbuf_submit(e, 0);
-//   return XDP_PASS;
-// }
-
-SEC("tp/sched/sched_process_exec")
-int handle_exec(struct trace_event_raw_sched_process_exec *ctx)
+SEC("xdp")
+int xdp_pass(struct xdp_md *ctx)
 {
 	struct event *e;
 
-	// void *data = (void *)(long)ctx->data;
-	// void *data_end = (void *)(long)ctx->data_end;
-	// int pkt_size = data_end - data;
+	void *data = (void *)(long)ctx->data;
+	void *data_end = (void *)(long)ctx->data_end;
+	int pkt_size = data_end - data;
 
 	// pid = bpf_get_current_pid_tgid() >> 32;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
   if (!e) {
 		return XDP_PASS;
 	}
-	e->pkt_size = 5;
+	e->pkt_size = pkt_size;
   bpf_ringbuf_submit(e, 0);
   return XDP_PASS;
 }
+
+// SEC("tp/sched/sched_process_exec")
+// int handle_exec(struct trace_event_raw_sched_process_exec *ctx)
+// {
+// 	struct event *e;
+//
+// 	// void *data = (void *)(long)ctx->data;
+// 	// void *data_end = (void *)(long)ctx->data_end;
+// 	// int pkt_size = data_end - data;
+//
+// 	// pid = bpf_get_current_pid_tgid() >> 32;
+// 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+//   if (!e) {
+// 		return XDP_PASS;
+// 	}
+// 	e->pkt_size = 5;
+//   bpf_ringbuf_submit(e, 0);
+//   return XDP_PASS;
+// }
 
 
 
