@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
 OUTPUT := .output
-CLANG ?= clang
-LLVM_STRIP ?= llvm-strip
+CLANG ?= clang-10
+LLVM_STRIP ?= llvm-strip-10
 BPFTOOL ?= $(abspath ../../tools/bpftool)
 LIBBPF_SRC := $(abspath ../../libbpf/src)
 LIBBPF_OBJ := $(abspath $(OUTPUT)/libbpf.a)
@@ -13,7 +13,7 @@ INCLUDES := -I$(OUTPUT) -I../../libbpf/include/uapi -I$(dir $(VMLINUX))
 CFLAGS := -g -Wall
 ARCH := $(shell uname -m | sed 's/x86_64/x86/' | sed 's/aarch64/arm64/' | sed 's/ppc64le/powerpc/' | sed 's/mips.*/mips/')
 
-APPS = minimal bootstrap uprobe kprobe fentry xdp
+APPS = minimal bootstrap uprobe kprobe fentry xdptest
 
 # Get Clang's default includes on this system. We'll explicitly add these dirs
 # to the includes list when compiling with `-target bpf` because otherwise some
