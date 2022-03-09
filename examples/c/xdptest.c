@@ -9,6 +9,8 @@
 #include "xdptest.h"
 #include "xdptest.skel.h"
 
+const int ifindex = 4;
+
 static struct env {
 	bool verbose;
 	long min_duration_ms;
@@ -125,9 +127,10 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
+	// xdptest_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
+
 	/* Attach tracepoints */
-	int ifindex = argv[1];
-	err = xdptest_bpf__attach_xdp(skel, ifindex);
+	err = xdptest_bpf__attach(skel);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
