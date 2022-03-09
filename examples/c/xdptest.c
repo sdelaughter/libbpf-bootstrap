@@ -84,16 +84,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	tm = localtime(&t);
 	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 
-	if (e->exit_event) {
-		printf("%-8s %-5s %-16s %-7d %-7d [%u]",
-		       ts, "EXIT", e->comm, e->pid, e->ppid, e->exit_code);
-		if (e->duration_ns)
-			printf(" (%llums)", e->duration_ns / 1000000);
-		printf("\n");
-	} else {
-		printf("%-8s %-5s %-16s %-7d %-7d %s\n",
-		       ts, "EXEC", e->comm, e->pid, e->ppid, e->filename);
-	}
+	printf("%-8s %i\n", ts, e->pkt_size);
 
 	return 0;
 }
@@ -124,8 +115,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	/* Parameterize BPF code with minimum duration parameter */
-	skel->rodata->min_duration_ns = env.min_duration_ms * 1000000ULL;
+	// /* Parameterize BPF code with minimum duration parameter */
+	// skel->rodata->min_duration_ns = env.min_duration_ms * 1000000ULL;
 
 	/* Load & verify BPF programs */
 	err = xdptest_bpf__load(skel);
@@ -150,8 +141,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-8s %-5s %-16s %-7s %-7s %s\n",
-	       "TIME", "EVENT", "COMM", "PID", "PPID", "FILENAME/EXIT CODE");
+	printf("%-8s %s\n",
+	       "TIME", "PACKET SIZE");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */

@@ -25,19 +25,23 @@ const volatile unsigned long long min_duration_ns = 0;
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx)
 {
-	pid_t pid;
-	unsigned fname_off;
 	struct event *e;
-	struct task_struct *task;
 
-	pid = bpf_get_current_pid_tgid() >> 32;
+	void *data = (void *)(long)ctx->data;
+	void *data_end = (void *)(long)ctx->data_end;
+	int pkt_size = data_end - data;
+
+	// pid = bpf_get_current_pid_tgid() >> 32;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-  if (!e)
-		return 0;
+  if (!e) {
+		return XDP_PASS;
+	}
+	e->pkt_size = pkt_size;
+
 	// task = (struct task_struct *)bpf_get_current_task();
 
-  e->exit_event = false;
-  e->pid = pid;
+  // e->exit_event = false;
+  // e->pid = pid;
   // e->ppid = BPF_CORE_READ(task, real_parent, tgid);
   // bpf_get_current_comm(&e->comm, sizeof(e->comm));
 
@@ -45,15 +49,6 @@ int xdp_pass(struct xdp_md *ctx)
 	// bpf_probe_read_str(&e->filename, sizeof(e->filename), (void *)ctx + fname_off);
         /* successfully submit it to user-space for post-processing */
   bpf_ringbuf_submit(e, 0);
-  return 0;
-
-
-
-  void *data = (void *)(long)ctx->data;
-  void *data_end = (void *)(long)ctx->data_end;
-  int pkt_sz = data_end - data;
-
-  bpf_printk("packet size: %d", pkt_sz);
   return XDP_PASS;
 }
 
