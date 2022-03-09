@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     }
 
     /* Attach xdp handler */
-    err = http_bpf__attach(skel);
+    err = http_bpf__attach_xdp(skel, 4);
     if (err) {
         fprintf(stderr, "Failed to attach BPF skeleton\n");
         goto cleanup;
