@@ -32,29 +32,29 @@ int xdp_pass(struct xdp_md *ctx)
 
 	pid = bpf_get_current_pid_tgid() >> 32;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-        if (!e)
-                return 0;
-	task = (struct task_struct *)bpf_get_current_task();
+  if (!e)
+		return 0;
+	// task = (struct task_struct *)bpf_get_current_task();
 
-        e->exit_event = false;
-        e->pid = pid;
-        e->ppid = BPF_CORE_READ(task, real_parent, tgid);
-        bpf_get_current_comm(&e->comm, sizeof(e->comm));
+  e->exit_event = false;
+  e->pid = pid;
+  // e->ppid = BPF_CORE_READ(task, real_parent, tgid);
+  // bpf_get_current_comm(&e->comm, sizeof(e->comm));
 
         // fname_off = ctx->__data_loc_filename & 0xFFFF;
-	// bpf_probe_read_str(&e->filename, sizeof(e->filename), (void *)ctx + fname_off);	
+	// bpf_probe_read_str(&e->filename, sizeof(e->filename), (void *)ctx + fname_off);
         /* successfully submit it to user-space for post-processing */
-        bpf_ringbuf_submit(e, 0);
-        return 0;
+  bpf_ringbuf_submit(e, 0);
+  return 0;
 
 
 
-        void *data = (void *)(long)ctx->data;
-        void *data_end = (void *)(long)ctx->data_end;
-        int pkt_sz = data_end - data;
+  void *data = (void *)(long)ctx->data;
+  void *data_end = (void *)(long)ctx->data_end;
+  int pkt_sz = data_end - data;
 
-        bpf_printk("packet size: %d", pkt_sz);
-        return XDP_PASS;
+  bpf_printk("packet size: %d", pkt_sz);
+  return XDP_PASS;
 }
 
 SEC("tp/sched/sched_process_exec")
@@ -106,7 +106,7 @@ int handle_exit(struct trace_event_raw_sched_process_template* ctx)
 	struct event *e;
 	pid_t pid, tid;
 	u64 id, ts, *start_ts, duration_ns = 0;
-	
+
 	/* get PID and TID of exiting thread/process */
 	id = bpf_get_current_pid_tgid();
 	pid = id >> 32;
