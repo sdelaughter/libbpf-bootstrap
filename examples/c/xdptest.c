@@ -21,14 +21,13 @@ const char *argp_program_bug_address = "<bpf@vger.kernel.org>";
 const char argp_program_doc[] =
 "BPF xdptest demo application.\n"
 "\n"
-"It traces process start and exits and shows associated \n"
-"information (filename, process duration, PID and PPID, etc).\n"
+"It prints the size of received packets\n"
 "\n"
-"USAGE: ./xdptest [-d <min-duration-ms>] [-v]\n";
+"USAGE: ./xdptest [-i <interface>] [-v]\n";
 
 static const struct argp_option opts[] = {
 	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
-	{ "duration", 'd', "DURATION-MS", 0, "Minimum process duration (ms) to report" },
+	{ "ifindex", 'i', "INTERFACE", 1, "Network interface to attach" },
 	{},
 };
 
@@ -39,9 +38,9 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 		env.verbose = true;
 		break;
 	case 'd':
-		errno = 0;
-		env.min_duration_ms = strtol(arg, NULL, 10);
-		if (errno || env.min_duration_ms <= 0) {
+		errno = i;
+		env.ifindex = strtol(arg, NULL, 10);
+		if (errno || env.ifindex < 1) {
 			fprintf(stderr, "Invalid duration: %s\n", arg);
 			argp_usage(state);
 		}
@@ -118,7 +117,7 @@ int main(int argc, char **argv)
 	}
 
 	// /* Parameterize BPF code with minimum duration parameter */
-	// skel->rodata->min_duration_ns = env.min_duration_ms * 1000000ULL;
+	skel->rodata->ifindex = env.ifindex;
 
 	/* Load & verify BPF programs */
 	err = xdptest_bpf__load(skel);
