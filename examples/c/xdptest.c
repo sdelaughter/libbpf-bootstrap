@@ -13,7 +13,7 @@ const int ifindex = 4;
 
 static struct env {
 	bool verbose;
-	long min_duration_ms;
+	long ifindex;
 } env;
 
 const char *argp_program_version = "xdptest 0.0";
