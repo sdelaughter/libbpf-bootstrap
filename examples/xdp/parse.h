@@ -8,19 +8,16 @@
 #define ETH_P_IPV6 0x86DD
 
 struct event {
-	unsigned int ts;
+	unsigned long long ts;
 	unsigned char packet_size;
-	// __u8 eth_src;
-	// __u8 eth_dst;
-	// __u16 eth_protocol;
 	unsigned char ip_version;
 	unsigned char ip_protocol;
-	unsigned int ip_saddr;
-	unsigned int ip_daddr;
+	unsigned long ip_saddr;
+	unsigned long ip_daddr;
 	unsigned char ip_ttl;
-	unsigned int sport;
-	unsigned int dport;
-	unsigned int payload_size;
+	unsigned short sport;
+	unsigned short dport;
+	unsigned short payload_size;
 };
 
 // struct event {
