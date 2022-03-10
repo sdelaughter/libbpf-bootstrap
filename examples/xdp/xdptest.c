@@ -30,26 +30,7 @@ static const struct argp_option opts[] = {
 	{},
 };
 
-// static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int ifindex)
-// {
-// 	int i, err;
-//
-// 	for (i = 0; i < s->prog_cnt; i++) {
-// 		struct bpf_program *prog = *s->progs[i].prog;
-// 		struct bpf_link **link = s->progs[i].link;
-//
-// 		*link = bpf_program__attach_xdp(prog, ifindex);
-// 		err = libbpf_get_error(*link);
-// 		if (err) {
-// 			return err;
-// 		}
-// 	}
-//
-// 	return 0;
-// }
-
-static error_t parse_arg(int key, char *arg, struct argp_state *state)
-{
+static error_t parse_arg(int key, char *arg, struct argp_state *state) {
 	switch (key) {
 	case 'v':
 		env.verbose = true;
@@ -77,8 +58,7 @@ static const struct argp argp = {
 	.doc = argp_program_doc,
 };
 
-static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
-{
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
 	if (level == LIBBPF_DEBUG && !env.verbose)
 		return 0;
 	return vfprintf(stderr, format, args);
@@ -86,13 +66,11 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
 
 static volatile bool exiting = false;
 
-static void sig_handler(int sig)
-{
+static void sig_handler(int sig) {
 	exiting = true;
 }
 
-static int handle_event(void *ctx, void *data, size_t data_sz)
-{
+static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 	struct tm *tm;
 	char ts[32];
@@ -107,8 +85,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	return 0;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	struct ring_buffer *rb = NULL;
 	struct xdptest_bpf *skel;
 	int err;
@@ -142,26 +119,15 @@ int main(int argc, char **argv)
 
 	// xdptest_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
-	/* Attach tracepoints */
-	// err = xdptest_bpf__attach(skel);
-	// if (err) {
-	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
-	// 	goto cleanup;
-	// }
-
+	/* Attach tracepoint */
 	struct bpf_program *prog = *skel->skeleton->progs[0].prog;
 	struct bpf_link **link = skel->skeleton->progs[0].link;
 	*link = bpf_program__attach_xdp(prog, env.ifindex);
 	err = libbpf_get_error(*link);
-	// if (err) {
-	// 	return err;
-	//
-	// err = bpf_object__attach_skeleton_xdp(skel->skeleton, env.ifindex);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
 	}
-
 
 	/* Set up ring buffer polling */
 	rb = ring_buffer__new(bpf_map__fd(skel->maps.rb), handle_event, NULL, NULL);
@@ -187,11 +153,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-cleanup:
-	/* Clean up */
-	ring_buffer__free(rb);
-	xdptest_bpf__detach(skel);
-	xdptest_bpf__destroy(skel);
+	cleanup:
+		/* Clean up */
+		ring_buffer__free(rb);
+		xdptest_bpf__detach(skel);
+		xdptest_bpf__destroy(skel);
 
-	return err < 0 ? -err : 0;
+		return err < 0 ? -err : 0;
 }
