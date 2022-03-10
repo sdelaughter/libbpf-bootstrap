@@ -8,7 +8,6 @@
 #include "xdptest.h"
 #include "xdptest.skel.h"
 #include <bpf/libbpf.h>
-#include <linux/bpf.h>
 
 
 static struct env {
@@ -51,7 +50,7 @@ static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int if
 		if (err) {
 			// pr_warn("failed to auto-attach program '%s': %d\n",
 			// 	bpf_program__name(prog), err);
-			return libbpf_err(err);
+			return err;
 		}
 	}
 
