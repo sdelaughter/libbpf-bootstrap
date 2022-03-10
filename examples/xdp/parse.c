@@ -117,8 +117,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 
 	printf("%-16llu %-12u %-12lu %-4u %-8u %03d.%03d.%03d.%03d %03d.%03d.%03d.%03d\n",
 	       e->ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
-				 saddr_bytes[3], saddr_bytes[2], saddr_bytes[1], saddr_bytes[0],
-				 daddr_bytes[3], daddr_bytes[2], daddr_bytes[1], daddr_bytes[0]);
+				 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
+				 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
 
 	return 0;
 }
