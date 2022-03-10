@@ -141,7 +141,7 @@ int xdp_pass(struct xdp_md *ctx)
 					e->dport = 0;
 				}
       }
-    } else if (eth->h_proto == bpf_htons(ETH_P_IPV6)) {
+    } else if (e->eth_protocol == ETH_P_IPV6) {
       struct ipv6hdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
 				e->ip_version=ip->version;
@@ -152,18 +152,27 @@ int xdp_pass(struct xdp_md *ctx)
 				e->dport=0;
 				e->payload_size=ip->payload_len;
       }
+    } else if (e->eth_protocol == ETH_P_LLDP) {
+      struct ipv6hdr *ip = data + sizeof(*eth);
+      if ((void *)ip + sizeof(*ip) <= data_end) {
+				// e->ip_version=0;
+				// e->ip_protocol=0;
+				// e->ip_saddr=0;
+				// e->ip_daddr=0;
+				// e->sport=0;
+				// e->dport=0;
+				// e->payload_size=0;
+      }
     } else {
-      e->ip_version=0;
-			e->ip_protocol=0;
-			e->ip_saddr=0;
-			e->ip_daddr=0;
-			e->sport=0;
-			e->dport=0;
-			e->payload_size=0;
+      // e->ip_version=0;
+			// e->ip_protocol=0;
+			// e->ip_saddr=0;
+			// e->ip_daddr=0;
+			// e->sport=0;
+			// e->dport=0;
+			// e->payload_size=0;
     }
 	}
-
-  bpf_ringbuf_submit(e, 0);
-
+	bpf_ringbuf_submit(e, 0);
   return XDP_PASS;
 }
