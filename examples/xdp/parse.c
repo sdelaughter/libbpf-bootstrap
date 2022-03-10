@@ -109,6 +109,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 		start_ts = e->ts;
 	}
 
+	float norm_ts = (e->ts - start_ts) / 1000000000.0;
+
 	unsigned char saddr_bytes[4];
   saddr_bytes[0] = e->ip_saddr & 0xFF;
   saddr_bytes[1] = (e->ip_saddr >> 8) & 0xFF;
@@ -122,7 +124,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
   daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
 
 	printf("%-16llu | %-12u | %-12lu | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
-	       e->ts - start_ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
+	       norm_ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
 				 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
 				 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
 
