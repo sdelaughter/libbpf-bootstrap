@@ -5,6 +5,9 @@
 #ifndef __PARSE_H
 #define __PARSE_H
 
+#define ETH_P_IP 0x0800
+#define ETH_P_IPV6 0x86DD
+
 struct event {
 	uint64_t ts;
 	uint8_t packet_size;
