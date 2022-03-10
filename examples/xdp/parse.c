@@ -111,7 +111,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	tm = localtime(&t);
 	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 
-	printf("%-8s %i\n", ts, e->pkt_size);
+	printf("%-8s %i\n", e->ts, e->packet_size);
 
 	return 0;
 }
