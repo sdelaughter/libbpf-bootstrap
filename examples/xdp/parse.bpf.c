@@ -155,7 +155,7 @@ int xdp_pass(struct xdp_md *ctx)
     } else if (e->eth_protocol == ETH_P_LLDP) {
       struct ipv6hdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
-				bpf_ringbuf_discard(e);
+				bpf_ringbuf_discard(e, 0);
 				return XDP_PASS;
 				// e->ip_version=0;
 				// e->ip_protocol=0;
