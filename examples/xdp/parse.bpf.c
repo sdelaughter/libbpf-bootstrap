@@ -45,9 +45,9 @@ int xdp_pass(struct xdp_md *ctx)
   if ((void *)eth + sizeof(*eth) <= data_end) {
     // e->eth_src = eth->h_source;
     // e->eth_dst = eth->h_dest;
-    e->eth_protocol = eth->h_proto;
+    e->eth_protocol = bpf_htons(eth->h_proto);
 
-    if (eth->h_proto == bpf_htons(ETH_P_IP)) {
+    if (e->eth_protocol == ETH_P_IP) {
       // Parse IPv4 Header
       struct iphdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
