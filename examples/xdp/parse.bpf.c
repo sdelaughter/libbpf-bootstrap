@@ -47,7 +47,7 @@ int xdp_pass(struct xdp_md *ctx)
     // e->eth_dst = eth->h_dest;
     // e->eth_protocol = eth->h_proto;
 
-    if (eth->h_proto == bpf_htons(ETH_P_IP)) {
+    if (eth->h_proto == ETH_P_IP) {
       // Parse IPv4 Header
       struct iphdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
@@ -141,7 +141,7 @@ int xdp_pass(struct xdp_md *ctx)
 					e->dport = 0;
 				}
       }
-    } else if (eth->h_proto == bpf_htons(ETH_P_IPV6)) {
+    } else if (eth->h_proto == ETH_P_IP) {
       struct ipv6hdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
 				e->ip_version=ip->version;
