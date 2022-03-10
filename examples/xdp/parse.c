@@ -9,8 +9,6 @@
 #include "parse.skel.h"
 #include <bpf/libbpf.h>
 
-const unsigned long long start_ts = bpf_ktime_get_ns();
-
 static struct env {
 	bool verbose;
 	long ifindex;
@@ -103,6 +101,10 @@ static void sig_handler(int sig)
 
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
+	#ifndef START_TS
+		#define START_TS e->ts;
+	#endif
+
 	const struct event *e = data;
 	unsigned char saddr_bytes[4];
   saddr_bytes[0] = e->ip_saddr & 0xFF;
@@ -117,7 +119,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
   daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
 
 	printf("%-16llu | %-12u | %-12lu | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
-	       e->ts - start_ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
+	       e->ts - START_TS, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
 				 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
 				 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
 
