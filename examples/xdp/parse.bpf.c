@@ -31,7 +31,7 @@ int xdp_pass(struct xdp_md *ctx)
   if (!e) {
 		return XDP_PASS;
 	}
-	memset((void *)e, 0, sizeof(struct event));
+	// memset((void *)e, 0, sizeof(struct event));
 
 	e->ts = bpf_ktime_get_ns();
 
