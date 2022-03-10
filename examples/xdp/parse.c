@@ -15,9 +15,6 @@ static struct env {
 	long ifindex;
 } env;
 
-static struct sockaddr saddr;
-static struct sockaddr daddr;
-
 const char *argp_program_version = "parse 0.0";
 const char *argp_program_bug_address = "<bpf@vger.kernel.org>";
 const char argp_program_doc[] =
@@ -115,10 +112,14 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	// strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 
 	if (e->eth_protocol == ETH_P_IP) {
-		saddr.sa_family = AF_INET;
-		saddr.sa_data = e->ip_saddr;
-		daddr.sa_family = AF_INET;
-		daddr.sa_data = e->ip_daddr;
+		struct sockaddr saddr;
+		struct sockaddr daddr;
+		saddr.sin_family = AF_INET;
+		saddr.sin_addr = e->ip_saddr;
+		saddr.sin_port = e->sport;
+		daddr.sin_family = AF_INET;
+		daddr.sin_addr = e->ip_daddr;
+		daddr.sin_port = e->dport;
 	}
 	// } else if (e->eth_protocol == ETH_P_IP) {
 	// 	saddr.sa_family = AF_INET6;
