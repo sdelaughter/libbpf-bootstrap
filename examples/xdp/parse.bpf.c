@@ -53,7 +53,7 @@ int xdp_pass(struct xdp_md *ctx)
       struct iphdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
         // e->ihl = ip->ihl;
-        // e->ip_version = ip->version;
+        e->ip_version = ip->version;
         // e->tos = ip->tos;
         // e->ip_len = ip->tot_len;
         // e->ip_id = bpf_ntohs(ip->id);

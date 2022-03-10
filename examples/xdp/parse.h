@@ -15,8 +15,8 @@ struct event {
 	unsigned long eth_protocol;
 	unsigned char ip_version;
 	unsigned char ip_protocol;
-	unsigned long ip_saddr;
-	unsigned long ip_daddr;
+	long ip_saddr;
+	long ip_daddr;
 	unsigned char ip_ttl;
 	unsigned short sport;
 	unsigned short dport;
