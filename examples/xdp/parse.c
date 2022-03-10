@@ -112,6 +112,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 
 	printf("%-16d %i\n", e->ts, e->packet_size);
+	printf("%-16s %-12d %-4d %-8d %-16d %-16d\n",
+	       e->ts, e->packet_size, e->ip_version, e->ip_protocol, e->ip_saddr, e->ip_daddr);
 
 	return 0;
 }
@@ -173,8 +175,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-16s %s\n",
-	       "TIME", "PACKET SIZE");
+	printf("%-16s %-12s %-4s %-8s %-16s %-16s\n",
+	       "TIME", "PACKET SIZE", "IP", "PROTOCOL", "SOURCE", "DEST");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
