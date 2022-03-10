@@ -106,7 +106,7 @@ int xdp_pass(struct xdp_md *ctx)
           // Parse TCP Header
           struct tcphdr *tcp = (void *)ip + sizeof(*ip);
           if ((void *)tcp + sizeof(*tcp) <= data_end) {
-						e->payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct icmphdr))
+						e->payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct icmphdr));
             e->sport = bpf_ntohs(tcp->source);
             e->dport = bpf_ntohs(tcp->dest);
             // e->tcp_seq = bpf_ntohs(tcp->seq);
@@ -136,7 +136,7 @@ int xdp_pass(struct xdp_md *ctx)
 						*/
           }
         } else {
-					e->payload_size = ip->tot_len - (sizeof(struct iphdr))
+					e->payload_size = ip->tot_len - (sizeof(struct iphdr));
 					e->sport = 0;
 					e->dport = 0;
 				}
