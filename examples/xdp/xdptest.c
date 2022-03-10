@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 
 	struct bpf_program *prog = *skel->skeleton->progs[0].prog;
 	struct bpf_link **link = skel->skeleton->progs[0].link;
-	*link = bpf_program__attach_xdp(prog, ifindex);
+	*link = bpf_program__attach_xdp(prog, env.ifindex);
 	err = libbpf_get_error(*link);
 	// if (err) {
 	// 	return err;
