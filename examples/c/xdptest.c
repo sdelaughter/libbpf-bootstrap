@@ -5,11 +5,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/resource.h>
-#include <bpf/libbpf.h>
 #include "xdptest.h"
 #include "xdptest.skel.h"
-
-const int ifindex = 4;
 
 static struct env {
 	bool verbose;
@@ -116,9 +113,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// /* Parameterize BPF code with minimum duration parameter */
-	skel->rodata->ifindex = env.ifindex;
-
 	/* Load & verify BPF programs */
 	err = xdptest_bpf__load(skel);
 	if (err) {
@@ -129,11 +123,17 @@ int main(int argc, char **argv)
 	// xdptest_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
 	/* Attach tracepoints */
-	err = xdptest_bpf__attach(skel);
+	// err = xdptest_bpf__attach(skel);
+	// if (err) {
+	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
+	// 	goto cleanup;
+	// }
+	err = bpf_program__attach_skeleton_xdp(skel, env.ifindex);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
 	}
+
 
 	/* Set up ring buffer polling */
 	rb = ring_buffer__new(bpf_map__fd(skel->maps.rb), handle_event, NULL, NULL);
