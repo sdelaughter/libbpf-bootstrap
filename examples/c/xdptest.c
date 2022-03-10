@@ -38,12 +38,12 @@ static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int if
 		struct bpf_program *prog = *s->progs[i].prog;
 		struct bpf_link **link = s->progs[i].link;
 
-		if (!prog->load)
-			continue;
-
-		/* auto-attaching not supported for this program */
-		if (!prog->sec_def || !prog->sec_def->attach_fn)
-			continue;
+		// if (!prog->load)
+		// 	continue;
+		//
+		// /* auto-attaching not supported for this program */
+		// if (!prog->sec_def || !prog->sec_def->attach_fn)
+		// 	continue;
 
 		*link = bpf_program__attach_xdp(prog, ifindex);
 		err = libbpf_get_error(*link);
