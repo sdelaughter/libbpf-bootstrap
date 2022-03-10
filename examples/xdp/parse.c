@@ -103,15 +103,13 @@ static void sig_handler(int sig)
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
 	const struct event *e = data;
-	struct tm *tm;
-	char ts[32];
-	time_t t;
+	// struct tm *tm;
+	// char ts[32];
+	// time_t t;
 
-	time(&t);
-	tm = localtime(&t);
-	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
-
-	printf("%-16d %i\n", e->ts, e->packet_size);
+	// time(&t);
+	// tm = localtime(&t);
+	// strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 	printf("%-16s %-12d %-4d %-8d %-16d %-16d\n",
 	       e->ts, e->packet_size, e->ip_version, e->ip_protocol, e->ip_saddr, e->ip_daddr);
 
