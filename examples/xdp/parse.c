@@ -103,7 +103,7 @@ static void sig_handler(int sig)
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
 	#ifndef START_TS
-		#define START_TS e->ts;
+		#define START_TS e->ts
 	#endif
 
 	const struct event *e = data;
