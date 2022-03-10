@@ -103,31 +103,22 @@ static void sig_handler(int sig)
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
 	const struct event *e = data;
-	// struct tm *tm;
-	// char ts[32];
-	// time_t t;
+	unsigned char saddr_bytes[4];
+  saddr_bytes[0] = e->ip_saddr & 0xFF;
+  saddr_bytes[1] = (e->ip_saddr >> 8) & 0xFF;
+  saddr_bytes[2] = (e->ip_saddr >> 16) & 0xFF;
+  saddr_bytes[3] = (e->ip_saddr >> 24) & 0xFF;
 
-	// time(&t);
-	// tm = localtime(&t);
-	// strftime(ts, sizeof(ts), "%H:%M:%S", tm);
-	struct sockaddr_in saddr;
-	struct sockaddr_in daddr;
-	if (e->eth_protocol == ETH_P_IP) {
-		saddr.sin_family = AF_INET;
-		saddr.sin_addr = e->ip_saddr;
-		saddr.sin_port = e->sport;
-		daddr.sin_family = AF_INET;
-		daddr.sin_addr = e->ip_daddr;
-		daddr.sin_port = e->dport;
-	}
-	// } else if (e->eth_protocol == ETH_P_IP) {
-	// 	saddr.sa_family = AF_INET6;
-	// } else {
-	// 	saddr.sa_family = AF_UNSPEC;
-	// }
+	unsigned char daddr_bytes[4];
+  daddr_bytes[0] = e->ip_daddr & 0xFF;
+  daddr_bytes[1] = (e->ip_daddr >> 8) & 0xFF;
+  daddr_bytes[2] = (e->ip_daddr >> 16) & 0xFF;
+  daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
 
-	printf("%-16llu %-12u %-12lu %-4u %-8u %piS %piS\n",
-	       e->ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol, saddr, daddr);
+	printf("%-16llu %-12u %-12lu %-4u %-8u %03d.%03d.%03d.%03d %03d.%03d.%03d.%03d\n",
+	       e->ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
+				 saddr_bytes[3], saddr_bytes[2], saddr_bytes[1], saddr_bytes[0],
+				 daddr_bytes[3], daddr_bytes[2], daddr_bytes[1], daddr_bytes[0]);
 
 	return 0;
 }
