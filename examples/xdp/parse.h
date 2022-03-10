@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
 /* Copyright (c) 2020 Facebook */
 
-#include <linux/types.h>
+#include "vmlinux.h"
 
 #ifndef __PARSE_H
 #define __PARSE_H
