@@ -7,6 +7,7 @@
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
 const unsigned long ETH_P_LLDP = 35020;
+const unsigned long ETH_P_ARP = 2054;
 
 struct event {
 	unsigned long long ts;

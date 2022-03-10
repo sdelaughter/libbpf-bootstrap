@@ -153,26 +153,18 @@ int xdp_pass(struct xdp_md *ctx)
 				e->payload_size=ip->payload_len;
       }
     } else if (e->eth_protocol == ETH_P_LLDP) {
-      struct ipv6hdr *ip = data + sizeof(*eth);
-      if ((void *)ip + sizeof(*ip) <= data_end) {
-				bpf_ringbuf_discard(e, 0);
-				return XDP_PASS;
-				// e->ip_version=0;
-				// e->ip_protocol=0;
-				// e->ip_saddr=0;
-				// e->ip_daddr=0;
-				// e->sport=0;
-				// e->dport=0;
-				// e->payload_size=0;
-      }
+			// Ignore LLDP traffic
+			bpf_ringbuf_discard(e, 0);
+			return XDP_PASS;
+
+    } else if (e->eth_protocol == ETH_P_ARP) {
+			// Ignore ARP traffic
+			bpf_ringbuf_discard(e, 0);
+			return XDP_PASS;
+
     } else {
-      // e->ip_version=0;
-			// e->ip_protocol=0;
-			// e->ip_saddr=0;
-			// e->ip_daddr=0;
-			// e->sport=0;
-			// e->dport=0;
-			// e->payload_size=0;
+			// Handle any other Ethernet protocols
+			;
     }
 	}
 	bpf_ringbuf_submit(e, 0);
