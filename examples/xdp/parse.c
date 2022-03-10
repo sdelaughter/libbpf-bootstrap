@@ -103,11 +103,12 @@ static void sig_handler(int sig)
 
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
+	const struct event *e = data;
+
 	if(!start_ts){
 		start_ts = e->ts;
 	}
 
-	const struct event *e = data;
 	unsigned char saddr_bytes[4];
   saddr_bytes[0] = e->ip_saddr & 0xFF;
   saddr_bytes[1] = (e->ip_saddr >> 8) & 0xFF;
