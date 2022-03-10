@@ -63,8 +63,8 @@ int xdp_pass(struct xdp_md *ctx)
         e->ip_ttl = ip->ttl;
         e->ip_protocol = ip->protocol;
         // e->ip_checksum = ip->check;
-        e->ip_saddr = bpf_ntohs(ip->saddr);
-        e->ip_daddr = bpf_ntohs(ip->daddr);
+        e->ip_saddr = ip->saddr;
+        e->ip_daddr = ip->daddr;
 
         if (ip->protocol == IPPROTO_UDP) {
           // Parse UDP Header
