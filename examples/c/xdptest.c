@@ -8,6 +8,7 @@
 #include "xdptest.h"
 #include "xdptest.skel.h"
 #include <bpf/libbpf.h>
+#include <linux/bpf.h>
 
 
 static struct env {
