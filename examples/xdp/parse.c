@@ -110,12 +110,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	// time(&t);
 	// tm = localtime(&t);
 	// strftime(ts, sizeof(ts), "%H:%M:%S", tm);
-	struct in_addr ip_saddr;
-	struct in_addr ip_daddr;
-  ip_saddr.s_addr = e->ip_saddr;
-	ip_daddr.s_addr = e->ip_saddr;
 	printf("%-16llu %-12u %-12lu %-4u %-8u %pI4 %pI4\n",
-	       e->ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol, ip_saddr, ip_daddr);
+	       e->ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol, e->ip_saddr, e->ip_daddr);
 
 	return 0;
 }
