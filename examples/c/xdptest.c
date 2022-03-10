@@ -159,8 +159,8 @@ int main(int argc, char **argv)
 	// 	goto cleanup;
 	// }
 
-	struct bpf_program *prog = *skel->progs[i].prog;
-	struct bpf_link **link = skel->progs[i].link;
+	struct bpf_program *prog = *skel->progs[0].prog;
+	struct bpf_link **link = skel->progs[0].link;
 	*link = bpf_program__attach_xdp(prog, env.ifindex);
 
 
