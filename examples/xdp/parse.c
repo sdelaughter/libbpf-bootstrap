@@ -110,8 +110,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	// time(&t);
 	// tm = localtime(&t);
 	// strftime(ts, sizeof(ts), "%H:%M:%S", tm);
-	printf("%-16llu %-12u %-4u %-8u %-16lu %-16lu\n",
-	       e->ts, e->packet_size, e->ip_version, e->ip_protocol, e->ip_saddr, e->ip_daddr);
+	printf("%-16llu %-12u %-12lu %-4u %-8u %-16lu %-16lu\n",
+	       e->ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol, e->ip_saddr, e->ip_daddr);
 
 	return 0;
 }
@@ -173,8 +173,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-16s %-12s %-4s %-8s %-16s %-16s\n",
-	       "TIME", "PACKET SIZE", "IP", "PROTOCOL", "SOURCE", "DEST");
+	printf("%-16s %-12s %-12s %-4s %-8s %-16s %-16s\n",
+	       "TIME", "PACKET SIZE", "ETH PROTOCOL", "IP", "PROTOCOL", "SOURCE", "DEST");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */

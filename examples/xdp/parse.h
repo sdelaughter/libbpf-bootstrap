@@ -10,6 +10,7 @@
 struct event {
 	unsigned long long ts;
 	unsigned char packet_size;
+	unsigned long eth_protocol;
 	unsigned char ip_version;
 	unsigned char ip_protocol;
 	unsigned long ip_saddr;
