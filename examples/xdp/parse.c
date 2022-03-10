@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
 /* Copyright (c) 2020 Facebook */
-#include "parse.h"
 #include <argp.h>
 #include <signal.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/resource.h>
+#include "parse.h"
 #include "parse.skel.h"
 #include <bpf/libbpf.h>
 
@@ -111,7 +111,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	tm = localtime(&t);
 	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 
-	printf("%-8s %i\n", e->ts, e->packet_size);
+	printf("%-16d %i\n", e->ts, e->packet_size);
 
 	return 0;
 }
@@ -173,7 +173,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-8s %s\n",
+	printf("%-16s %s\n",
 	       "TIME", "PACKET SIZE");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);

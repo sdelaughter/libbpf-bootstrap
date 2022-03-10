@@ -8,19 +8,35 @@
 #define ETH_P_IPV6 0x86DD
 
 struct event {
-	__u64 ts;
-	__u8 packet_size;
+	unsigned int ts;
+	unsigned char packet_size;
 	// __u8 eth_src;
 	// __u8 eth_dst;
 	// __u16 eth_protocol;
-	__u8 ip_version;
-	__u8 ip_protocol;
-	__u32 ip_saddr;
-	__u32 ip_daddr;
-	__u8 ip_ttl;
-	__u16 sport;
-	__u16 dport;
-	__u16 payload_size;
+	unsigned char ip_version;
+	unsigned char ip_protocol;
+	unsigned int ip_saddr;
+	unsigned int ip_daddr;
+	unsigned char ip_ttl;
+	unsigned int sport;
+	unsigned int dport;
+	unsigned int payload_size;
 };
+
+// struct event {
+// 	__u64 ts;
+// 	__u8 packet_size;
+// 	// __u8 eth_src;
+// 	// __u8 eth_dst;
+// 	// __u16 eth_protocol;
+// 	__u8 ip_version;
+// 	__u8 ip_protocol;
+// 	__u32 ip_saddr;
+// 	__u32 ip_daddr;
+// 	__u8 ip_ttl;
+// 	__u16 sport;
+// 	__u16 dport;
+// 	__u16 payload_size;
+// };
 
 #endif /* __PARSE_H */
