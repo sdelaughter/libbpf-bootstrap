@@ -110,10 +110,9 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	// time(&t);
 	// tm = localtime(&t);
 	// strftime(ts, sizeof(ts), "%H:%M:%S", tm);
-
+	struct sockaddr_in saddr;
+	struct sockaddr_in daddr;
 	if (e->eth_protocol == ETH_P_IP) {
-		struct sockaddr saddr;
-		struct sockaddr daddr;
 		saddr.sin_family = AF_INET;
 		saddr.sin_addr = e->ip_saddr;
 		saddr.sin_port = e->sport;
