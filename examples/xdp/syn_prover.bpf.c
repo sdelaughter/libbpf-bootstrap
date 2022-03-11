@@ -56,7 +56,6 @@ unsigned long long Pearson64(const unsigned char *message, size_t len) {
     }
     retval = ((retval << 8) | h);
   }
-
   return retval;
 }
 
@@ -64,16 +63,18 @@ static bool is_syn(struct tcphdr* tcph) {
   return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static unsigned long long syn_hash(const unsigned char* message,
-																		struct iphdr* iph,
-																		struct tcphdr* tcph,
-																		unsigned long *nonce) {
-	memcpy(message, iph.saddr, 32);
-	memcpy(message+32, iph.daddr, 32);
-	memcpy(message+64, tcph.source, 16);
-	memcpy(message+80, tcph.dest, 16);
-	memcpy(message+96, tcph->seq, 32);
-	memcpy(message+128, nonce, 32);
+static void build_syn_digest(const unsigned char* digest,
+															struct iphdr* iph,
+															struct tcphdr* tcph){
+	(unsigned long*)message = iph->saddr;
+	(unsigned long*)message + 32 = iph->daddr;
+	(unsigned short*)message + 64 = tcph->source;
+	(unsigned short*)message + 80 = tcph->dest;
+	(unsigned long*)message + 96 = tcph->seq;
+	(unsigned long*)message + 128 = iph->ack_seq;
+}
+
+static unsigned long long syn_hash(const unsigned char* message) {
   return Pearson64(message, 160);
 }
 
@@ -83,19 +84,21 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
   unsigned long long hash = 0;
 	unsigned long long best_hash = 0;
 	unsigned char hash_array[160];
-	const unsigned char* message = hash_array;
+	const unsigned char* digest = hash_array;
+	tcph->ack_seq = nonce;
+	build_syn_digest(digest, iph, tcph);
 
   #pragma unroll
-  for (unsigned short i=0; i<POW_ITERS; i++) {
+  for (int i=0; i<POW_ITERS; i++) {
     hash = syn_hash(message, iph, tcph, &nonce);
     if (hash > best_hash) {
-      best_nonce = nonce;
+      best_nonce = nonce + i;
       best_hash = hash;
       if (best_hash >= POW_THRESHOLD) {
 				break;
       }
     }
-		nonce += 1;
+		(unsigned long*)message + 128 += 1;
   }
 	tcph->ack_seq = best_nonce;
 	e->bash_hash = best_hash;
