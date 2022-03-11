@@ -82,7 +82,7 @@ static unsigned long long syn_hash(struct message_digest* digest) {
 				(digest->seq * digest->ack_seq)) /
 				(digest->ack_seq * digest->ack_seq);
 	return sum;
-	bpf_printk("HASH: %ull\n", sum)
+	bpf_printk("HASH: %ull\n", sum);
 	// return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
 }
 
