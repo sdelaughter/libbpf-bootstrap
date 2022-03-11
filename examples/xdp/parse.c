@@ -123,7 +123,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
   daddr_bytes[2] = (e->ip_daddr >> 16) & 0xFF;
   daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
 
-	char[8] eth_protocol;
+	char eth_protocol[8];
 	if (e->eth_protocol == 2048) {
 		eth_protocol = "IPv4";
 	} else if (e->eth_protocol == 34525) {
@@ -133,7 +133,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	} else if (e->eth_protocol == 2054) {
 		eth_protocol = "ARP";
 	} else {
-		eth_protocol = "UNKNOWN"
+		eth_protocol = "UNKNOWN";
 	}
 
 	printf("%-8f | %-12u | %-12s | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
