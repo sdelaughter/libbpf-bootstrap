@@ -16,6 +16,15 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
+struct message_digest {
+	unsigned long saddr;
+	unsigned long daddr;
+	unsigned short sport;
+	unsigned short dport;
+	unsigned long seq;
+	unsigned long ack_seq;
+}
+
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 256 * 1024);
@@ -63,19 +72,19 @@ static bool is_syn(struct tcphdr* tcph) {
   return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static void build_syn_digest(const unsigned char* digest,
-															struct iphdr* iph,
-															struct tcphdr* tcph){
-	(unsigned long*)digest = iph->saddr;
-	(unsigned long*)digest + 32 = iph->daddr;
-	(unsigned short*)digest + 64 = tcph->source;
-	(unsigned short*)digest + 80 = tcph->dest;
-	(unsigned long*)digest + 96 = tcph->seq;
-	(unsigned long*)digest + 128 = iph->ack_seq;
-}
+// static void build_syn_digest(const unsigned char* digest,
+// 															struct iphdr* iph,
+// 															struct tcphdr* tcph){
+// 	(unsigned long*)digest = iph->saddr;
+// 	(unsigned long*)digest + 32 = iph->daddr;
+// 	(unsigned short*)digest + 64 = tcph->source;
+// 	(unsigned short*)digest + 80 = tcph->dest;
+// 	(unsigned long*)digest + 96 = tcph->seq;
+// 	(unsigned long*)digest + 128 = iph->ack_seq;
+// }
 
-static unsigned long long syn_hash(const unsigned char* message) {
-  return Pearson64(message, 160);
+static unsigned long long syn_hash(struct message_digest* digest) {
+  return Pearson64((char *)message, sizeof(struct message_digest));
 }
 
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
@@ -83,14 +92,18 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
   unsigned long best_nonce = nonce;
   unsigned long long hash = 0;
 	unsigned long long best_hash = 0;
-	unsigned char hash_array[160];
-	const unsigned char* digest = hash_array;
-	tcph->ack_seq = nonce;
-	build_syn_digest(digest, iph, tcph);
+
+	struct message_digest digest;
+	digest.saddr = iph->saddr;
+	digest.daddr = iph->daddr;
+	digest.sport = tpch->sport;
+	digest.dport = tcph->dport;
+	digest.seq = tcph->seq;
 
   #pragma unroll
   for (int i=0; i<POW_ITERS; i++) {
-    hash = syn_hash(message, iph, tcph, &nonce);
+		digest.ack_seq = nonce + i;
+    hash = syn_hash(digest);
     if (hash > best_hash) {
       best_nonce = nonce + i;
       best_hash = hash;
@@ -98,7 +111,6 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 				break;
       }
     }
-		(unsigned long*)message + 128 += 1;
   }
 	tcph->ack_seq = best_nonce;
 	e->bash_hash = best_hash;
