@@ -9,9 +9,9 @@ const unsigned long ETH_P_IPV6 = 34525;
 const unsigned long ETH_P_LLDP = 35020;
 const unsigned long ETH_P_ARP = 2054;
 
-// const unsigned long long POW_THRESHOLD  = 2147483648 // k=2
-const unsigned long long POW_THRESHOLD  = 3221225472 // k=4
-// const unsigned long long POW_THRESHOLD  = 3758096384 // k=8
+// const unsigned long long POW_THRESHOLD  = 2147483648; // k=2
+const unsigned long long POW_THRESHOLD  = 3221225472; // k=4
+// const unsigned long long POW_THRESHOLD  = 3758096384; // k=8
 const unsigned short POW_ITERS = 25;
 
 struct event {
