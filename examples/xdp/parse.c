@@ -131,17 +131,18 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	char *proto_name_other = "UNKNOWN";
 
 	char eth_protocol[8];
+	char *eth_protocol_pointer = eth_protocol;
 
 	if (e->eth_protocol == 2048) {
-		&eth_protocol = proto_name_ipv4;
+		eth_protocol_pointer = proto_name_ipv4;
 	} else if (e->eth_protocol == 34525) {
-		&eth_protocol = proto_name_ipv6;
+		eth_protocol_pointer = proto_name_ipv6;
 	} else if (e->eth_protocol == 35020) {
-		&eth_protocol = proto_name_lldp;
+		eth_protocol_pointer = proto_name_lldp;
 	} else if (e->eth_protocol == 2054) {
-		&eth_protocol = proto_name_arp;
+		eth_protocol_pointer = proto_name_arp;
 	} else {
-		&eth_protocol = proto_name_other;
+		eth_protocol_pointer = proto_name_other;
 	}
 
 	printf("%-8f | %-12u | %-12s | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
