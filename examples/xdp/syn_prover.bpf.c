@@ -1,0 +1,162 @@
+// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
+/* Copyright (c) 2020 Facebook */
+#include "vmlinux.h"
+#include <bpf/bpf_endian.h>
+#include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
+#include <bpf/bpf_core_read.h>
+#include "syn_prover.h"
+
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
+
+// struct {
+// 	__uint(type, BPF_MAP_TYPE_HASH);
+// 	__uint(max_entries, 8192);
+// 	__type(key, pid_t);
+// 	__type(value, u64);
+// } exec_start SEC(".maps");
+
+struct {
+	__uint(type, BPF_MAP_TYPE_RINGBUF);
+	__uint(max_entries, 256 * 1024);
+} rb SEC(".maps");
+
+static const unsigned char T[256] = {
+    29,  186, 180, 162, 184, 218, 3,   141, 55,  0,   72,  98,  226, 108, 220,
+    158, 231, 248, 247, 251, 130, 46,  174, 135, 170, 127, 163, 109, 229, 36,
+    45,  145, 79,  137, 122, 12,  182, 117, 17,  198, 204, 212, 39,  189, 52,
+    200, 102, 149, 15,  124, 233, 64,  88,  225, 105, 183, 131, 114, 187, 197,
+    165, 48,  56,  214, 227, 41,  95,  4,   93,  243, 239, 38,  61,  116, 51,
+    90,  236, 89,  18,  196, 213, 42,  96,  104, 27,  11,  21,  203, 250, 194,
+    57,  85,  54,  211, 32,  25,  140, 121, 147, 171, 6,   115, 234, 206, 101,
+    8,   7,   33,  112, 159, 28,  240, 238, 92,  249, 22,  129, 208, 118, 125,
+    179, 24,  178, 143, 156, 63,  207, 164, 103, 172, 71,  157, 185, 199, 128,
+    181, 175, 193, 154, 152, 176, 26,  9,   132, 62,  151, 2,   97,  205, 120,
+    77,  190, 150, 146, 50,  23,  155, 47,  126, 119, 254, 40,  241, 192, 144,
+    83,  138, 49,  113, 160, 74,  70,  253, 217, 110, 58,  5,   228, 136, 87,
+    215, 169, 14,  168, 73,  219, 167, 10,  148, 173, 100, 35,  222, 76,  221,
+    139, 235, 16,  69,  166, 133, 210, 67,  30,  84,  43,  202, 161, 195, 223,
+    53,  34,  232, 245, 237, 230, 59,  80,  191, 91,  66,  209, 75,  78,  44,
+    65,  1,   188, 252, 107, 86,  177, 242, 134, 13,  246, 99,  20,  81,  111,
+    68,  153, 37,  123, 216, 224, 19,  31,  82,  106, 201, 244, 60,  142, 94,
+    255};
+
+
+unsigned long long Pearson64(const unsigned char *message, size_t len) {
+  size_t i;
+  size_t j;
+  unsigned char h;
+  unsigned long long retval;
+
+  for (j = 0; j < sizeof(retval); ++j) {
+    // Change the first byte
+    h = T[(message[0] + j) % 256];
+    for (i = 1; i < len; ++i) {
+      h = T[h ^ message[i]];
+    }
+    retval = ((retval << 8) | h);
+  }
+
+  return retval;
+}
+
+static bool is_syn(struct tcphdr* tcph) {
+  return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
+}
+
+static unsigned long long syn_hash(const unsigned char* message,
+																		struct iphdr* iph,
+																		struct tcphdr* tcph,
+																		unsigned long *nonce) {
+	memcpy(message, iph.saddr, 32);
+	memcpy(message+32, iph.daddr, 32);
+	memcpy(message+64, tcph.source, 16);
+	memcpy(message+80, tcph.dest, 16);
+	memcpy(message+96, tcph->seq, 32);
+	memcpy(message+128, nonce, 32);
+  return Pearson64(message, 160);
+}
+
+static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
+  unsigned long nonce = bpf_get_prandom_u32();
+  unsigned long best_nonce = nonce;
+  unsigned long long hash = 0;
+	unsigned long long best_hash = 0;
+	unsigned char hash_array[160];
+	const unsigned char* message = hash_array;
+
+  #pragma unroll
+  for (unsigned short i=0; i<POW_ITERS; i++) {
+    hash = syn_hash(message, iph, tcph, &nonce);
+    if (hash > best_hash) {
+      best_nonce = nonce;
+      best_hash = hash;
+      if (best_hash >= POW_THRESHOLD) {
+				break;
+      }
+    }
+		nonce += 1;
+  }
+	tcph->ack_seq = best_nonce;
+	e->bash_hash = best_hash;
+	e->best_nonce = best_nonce;
+	if (best_hash < POW_THRESHOLD){
+		e->hash_iters = -1;
+	}
+	else {
+		e->hash_iters = i+1;
+	}
+}
+
+static void cleanup(event *e) {
+	bpf_ringbuf_discard(e, 0);
+	return XDP_PASS;
+}
+
+SEC("xdp")
+int xdp_pass(struct xdp_md *ctx) {
+	struct event *e;
+	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+  if (!e) {
+		return XDP_PASS;
+	}
+	// memset((void *)e, 0, sizeof(struct event));
+
+	e->start_ts = bpf_ktime_get_ns();
+
+	void *data = (void *)(long)ctx->data;
+	void *data_end = (void *)(long)ctx->data_end;
+	int packet_size = data_end - data;
+
+	// Parse Ethernet Header
+  struct ethhdr *ethh = data;
+  if ((void *)ethh + sizeof(*ethh) <= data_end) {
+    if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+      // Parse IPv4 Header
+      struct iphdr *iph = data + sizeof(*ethh);
+      if ((void *)iph + sizeof(*iph) <= data_end) {
+        if (iph->protocol == IPPROTO_TCP) {
+          // Parse TCP Header
+          struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+          if ((void *)tcph + sizeof(*tcph) <= data_end) {
+						if(!is_syn(tcph)) cleaup(e);
+							do_syn_pow(iph, tcph, e);
+          } else cleanup(e);
+        } else cleanup(e);
+      }
+    } else if (e->eth_protocol == ETH_P_IPV6) {
+      struct ipv6hdr *ip = data + sizeof(*eth);
+      if ((void *)ip + sizeof(*ip) <= data_end) {
+				if(ip->nexthdr == IPPROTO_TCP) {
+					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+          if ((void *)tcph + sizeof(*tcph) <= data_end) {
+						if(!is_syn(tcph)) cleaup(e);
+							do_syn_pow(iph, tcph, e);
+          } else cleanup(e);
+				} else cleanup(e);
+			} else cleanup(e);
+    } else cleanup(e);
+	} else cleanup(e);
+	bpf_ringbuf_submit(e, 0);
+  return XDP_PASS;
+}
