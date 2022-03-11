@@ -151,7 +151,7 @@ static const unsigned char T[256] = {
 						return XDP_PASS;
 					}
 				}
-			} else if (e->eth_protocol == ETH_P_IPV6) {
+			} else if (bpf_htons(ethh->h_proto) == ETH_P_IPV6) {
 				struct ipv6hdr *ip = data + sizeof(*eth);
 				if ((void *)ip + sizeof(*ip) <= data_end) {
 					if(ip->nexthdr == IPPROTO_TCP) {
