@@ -136,7 +136,11 @@ static const unsigned char T[256] = {
 						// Parse TCP Header
 						struct tcphdr *tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							if(!is_syn(tcph)) cleaup(e);
+							if(!is_syn(tcph)){
+								bpf_ringbuf_discard(e, 0);
+								return XDP_PASS;
+							}
+							// It's a SYN! Compute the proof of work
 							do_syn_pow(iph, tcph, e);
 						} else {
 							bpf_ringbuf_discard(e, 0);
