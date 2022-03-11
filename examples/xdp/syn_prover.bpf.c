@@ -66,12 +66,12 @@ static bool is_syn(struct tcphdr* tcph) {
 static void build_syn_digest(const unsigned char* digest,
 															struct iphdr* iph,
 															struct tcphdr* tcph){
-	(unsigned long*)message = iph->saddr;
-	(unsigned long*)message + 32 = iph->daddr;
-	(unsigned short*)message + 64 = tcph->source;
-	(unsigned short*)message + 80 = tcph->dest;
-	(unsigned long*)message + 96 = tcph->seq;
-	(unsigned long*)message + 128 = iph->ack_seq;
+	(unsigned long*)digest = iph->saddr;
+	(unsigned long*)digest + 32 = iph->daddr;
+	(unsigned short*)digest + 64 = tcph->source;
+	(unsigned short*)digest + 80 = tcph->dest;
+	(unsigned long*)digest + 96 = tcph->seq;
+	(unsigned long*)digest + 128 = iph->ack_seq;
 }
 
 static unsigned long long syn_hash(const unsigned char* message) {
