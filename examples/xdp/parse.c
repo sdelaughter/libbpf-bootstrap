@@ -132,7 +132,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	char *proto_name_udp = "UDP";
 	char *proto_name_tcp = "TCP";
 	char *proto_name_gre = "GRE";
-	char *proto_name_other = "UNKNOWN";
+	// char *proto_name_other = "UNKNOWN";
 
 	char *eth_protocol;
 	if (e->eth_protocol == 2048) {
