@@ -124,13 +124,13 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
   daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
 
 	char[8] eth_protocol;
-	if (e->eth_protocol = 2048) {
+	if (e->eth_protocol == 2048) {
 		eth_protocol = "IPv4";
-	} else if (e->eth_protocol = 34525) {
+	} else if (e->eth_protocol == 34525) {
 		eth_protocol = "IPv6";
-	} else if (e->eth_protocol = 35020) {
+	} else if (e->eth_protocol == 35020) {
 		eth_protocol = "LLDP";
-	} else if (e->eth_protocol = 2054) {
+	} else if (e->eth_protocol == 2054) {
 		eth_protocol = "ARP";
 	} else {
 		eth_protocol = "UNKNOWN"
