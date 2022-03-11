@@ -73,8 +73,8 @@ static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static unsigned long long syn_hash(struct message_digest* digest) {
-	unsigned long long sum = 0;
+static unsigned long syn_hash(struct message_digest* digest) {
+	unsigned long sum = 0;
 	sum = ((digest->saddr * digest->ack_seq) +
 				(digest->daddr * digest->ack_seq) +
 				(digest->sport * digest->ack_seq) +
@@ -89,8 +89,8 @@ static unsigned long long syn_hash(struct message_digest* digest) {
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	unsigned long nonce = bpf_get_prandom_u32();
 	unsigned long best_nonce = nonce;
-	unsigned long long hash = 0;
-	unsigned long long best_hash = 0;
+	unsigned long hash = 0;
+	unsigned long best_hash = 0;
 
 	struct message_digest digest;
 	digest.saddr = iph->saddr;

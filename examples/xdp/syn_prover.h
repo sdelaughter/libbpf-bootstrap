@@ -17,8 +17,8 @@ const int POW_ITERS = 10;
 struct event {
 	unsigned long long start_ts;
 	unsigned long long end_ts;
-	unsigned long long best_nonce;
-	unsigned long long best_hash;
+	unsigned long best_nonce;
+	unsigned long best_hash;
 	unsigned int hash_iters;
 };
 
