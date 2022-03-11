@@ -152,7 +152,10 @@ static const unsigned char T[256] = {
 						return XDP_PASS;
 					}
 				}
-			} else if (bpf_htons(ethh->h_proto) == ETH_P_IPV6) {
+			}
+
+			/*
+			else if (bpf_htons(ethh->h_proto) == ETH_P_IPV6) {
 				struct ipv6hdr *iph = data + sizeof(*ethh);
 				if ((void *)iph + sizeof(*iph) <= data_end) {
 					if(iph->nexthdr == IPPROTO_TCP) {
@@ -177,7 +180,9 @@ static const unsigned char T[256] = {
 					bpf_ringbuf_discard(e, 0);
 					return XDP_PASS;
 				}
-			} else {
+			}
+			*/
+			else {
 				bpf_ringbuf_discard(e, 0);
 				return XDP_PASS;
 			}
