@@ -127,11 +127,14 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	char *proto_name_ipv4 = "IPv4";
 	char *proto_name_ipv6 = "IPv6";
 	char *proto_name_lldp = "LLDP";
-	char *proto_name_arp = "LLDP";
+	char *proto_name_arp = "ARP";
+	char *proto_name_icmp = "ICMP";
+	char *proto_name_udp = "UDP";
+	char *proto_name_tcp = "TCP";
+	char *proto_name_tcp = "GRE";
 	char *proto_name_other = "UNKNOWN";
 
 	char *eth_protocol;
-
 	if (e->eth_protocol == 2048) {
 		eth_protocol = proto_name_ipv4;
 	} else if (e->eth_protocol == 34525) {
@@ -144,8 +147,21 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 		eth_protocol = proto_name_other;
 	}
 
-	printf("%-8f | %-12u | %-12s | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
-	       norm_ts, e->packet_size, eth_protocol, e->ip_version, e->ip_protocol,
+	char *ip_protocol;
+	if (e->ip_protocol == 1) {
+		ip_protocol = proto_name_icmp;
+	} else if (e->eth_protocol == 6) {
+		ip_protocol = proto_name_tcp;
+	} else if (e->eth_protocol == 17) {
+		ip_protocol = proto_name_udp;
+	} else if (e->eth_protocol == 47) {
+		eth_protocol = proto_name_gre;
+	} else {
+		eth_protocol = proto_name_other;
+	}
+
+	printf("%-8f | %-12u | %-8s | %-8s | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
+	       norm_ts, e->packet_size, eth_protocol, ip_protocol,
 				 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
 				 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
 
@@ -209,8 +225,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-16s | %-12s | %-12s | %-4s | %-8s | %-15s | %-15s\n",
-	       "TIME", "PACKET SIZE", "ETH PROTOCOL", "IP", "PROTOCOL", "SOURCE", "DEST");
+	printf("%-8s | %-12s | %-8s | %-8s | %-15s | %-15s\n",
+	       "TIME", "PACKET SIZE", "ETH PROTO", "IP PROTO", "SOURCE", "DEST");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
