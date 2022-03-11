@@ -90,8 +90,8 @@ static const unsigned char T[256] = {
 		digest.seq = tcph->seq;
 
 		#pragma unroll
-		int i=0;
-		for (i; i<POW_ITERS; i++) {
+		for (int i=0; i<POW_ITERS; i++) {
+			e->hash_iters = i+1;
 			digest.ack_seq = nonce + i;
 			hash = syn_hash(&digest);
 			if (hash > best_hash) {
@@ -107,9 +107,6 @@ static const unsigned char T[256] = {
 		e->best_nonce = best_nonce;
 		if (best_hash < POW_THRESHOLD){
 			e->hash_iters = -1;
-		}
-		else {
-			e->hash_iters = i+1;
 		}
 	}
 
