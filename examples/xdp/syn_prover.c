@@ -109,25 +109,15 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 		start_ts = e->ts;
 	}
 
-	float norm_ts = (e->ts - start_ts) / 1000000000.0;
+	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
+	unsigned long long duration (e->start_ts - e->end_ts);
 
-	unsigned char saddr_bytes[4];
-  saddr_bytes[0] = e->ip_saddr & 0xFF;
-  saddr_bytes[1] = (e->ip_saddr >> 8) & 0xFF;
-  saddr_bytes[2] = (e->ip_saddr >> 16) & 0xFF;
-  saddr_bytes[3] = (e->ip_saddr >> 24) & 0xFF;
+	unsigned long long start_ts;
+	unsigned long long end_ts;
+	unsigned int hash_iters;
 
-	unsigned char daddr_bytes[4];
-  daddr_bytes[0] = e->ip_daddr & 0xFF;
-  daddr_bytes[1] = (e->ip_daddr >> 8) & 0xFF;
-  daddr_bytes[2] = (e->ip_daddr >> 16) & 0xFF;
-  daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
-
-	printf("%-8f | %-12u | %-12lu | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
-	       norm_ts, e->packet_size, e->eth_protocol, e->ip_version, e->ip_protocol,
-				 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
-				 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
-
+	printf("%-8f | %-8u | %u\n",
+	       norm_ts, duration, e->hash_iters;
 	return 0;
 }
 
@@ -188,8 +178,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-16s | %-12s | %-12s | %-4s | %-8s | %-15s | %-15s\n",
-	       "TIME", "PACKET SIZE", "ETH PROTOCOL", "IP", "PROTOCOL", "SOURCE", "DEST");
+	printf("%-8s | %-8s | %s\n",
+	       "TIME", "DURATION", "ITERS");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
