@@ -144,7 +144,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	} else if (e->eth_protocol == 2054) {
 		eth_protocol = proto_name_arp;
 	} else {
-		eth_protocol = proto_name_other;
+		eth_protocol = itoa(e->eth_protocol, 10);
 	}
 
 	char *ip_protocol;
@@ -157,7 +157,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	} else if (e->eth_protocol == 47) {
 		ip_protocol = proto_name_gre;
 	} else {
-		ip_protocol = proto_name_other;
+		ip_protocol = itoa(e->ip_protocol, 10);
 	}
 
 	printf("%-8f | %-12u | %-8s | %-8s | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
