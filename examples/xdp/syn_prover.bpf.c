@@ -48,126 +48,97 @@ static const unsigned char T[256] = {
 	53,  34,  232, 245, 237, 230, 59,  80,  191, 91,  66,  209, 75,  78,  44,
 	65,  1,   188, 252, 107, 86,  177, 242, 134, 13,  246, 99,  20,  81,  111,
 	68,  153, 37,  123, 216, 224, 19,  31,  82,  106, 201, 244, 60,  142, 94,
-	255};
+	25
+};
 
 
-	unsigned long long Pearson64(const unsigned char *message, size_t len) {
-		size_t i;
-		size_t j;
-		unsigned char h;
-		unsigned long long retval;
+unsigned long long Pearson64(const unsigned char *message, size_t len) {
+	size_t i;
+	size_t j;
+	unsigned char h;
+	unsigned long long retval;
 
-		for (j = 0; j < sizeof(retval); ++j) {
-			// Change the first byte
-			h = T[(message[0] + j) % 256];
-			for (i = 1; i < len; ++i) {
-				h = T[h ^ message[i]];
+	for (j = 0; j < sizeof(retval); ++j) {
+		// Change the first byte
+		h = T[(message[0] + j) % 256];
+		for (i = 1; i < len; ++i) {
+			h = T[h ^ message[i]];
+		}
+		retval = ((retval << 8) | h);
+	}
+	return retval;
+}
+
+static bool is_syn(struct tcphdr* tcph) {
+	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
+}
+
+static unsigned long long syn_hash(struct message_digest* digest) {
+	return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
+}
+
+static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
+	unsigned long nonce = bpf_get_prandom_u32();
+	unsigned long best_nonce = nonce;
+	unsigned long long hash = 0;
+	unsigned long long best_hash = 0;
+
+	struct message_digest digest;
+	digest.saddr = iph->saddr;
+	digest.daddr = iph->daddr;
+	digest.sport = tcph->source;
+	digest.dport = tcph->dest;
+	digest.seq = tcph->seq;
+
+	#pragma unroll
+	for (int i=0; i<POW_ITERS; i++) {
+		e->hash_iters = i+1;
+		digest.ack_seq = nonce + i;
+		hash = syn_hash(&digest);
+		if (hash > best_hash) {
+			best_nonce = nonce + i;
+			best_hash = hash;
+			if (best_hash >= POW_THRESHOLD) {
+				break;
 			}
-			retval = ((retval << 8) | h);
-		}
-		return retval;
-	}
-
-	static bool is_syn(struct tcphdr* tcph) {
-		return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
-	}
-
-	static unsigned long long syn_hash(struct message_digest* digest) {
-		return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
-	}
-
-	static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
-		unsigned long nonce = bpf_get_prandom_u32();
-		unsigned long best_nonce = nonce;
-		unsigned long long hash = 0;
-		unsigned long long best_hash = 0;
-
-		struct message_digest digest;
-		digest.saddr = iph->saddr;
-		digest.daddr = iph->daddr;
-		digest.sport = tcph->source;
-		digest.dport = tcph->dest;
-		digest.seq = tcph->seq;
-
-		#pragma unroll
-		for (int i=0; i<POW_ITERS; i++) {
-			e->hash_iters = i+1;
-			digest.ack_seq = nonce + i;
-			hash = syn_hash(&digest);
-			if (hash > best_hash) {
-				best_nonce = nonce + i;
-				best_hash = hash;
-				if (best_hash >= POW_THRESHOLD) {
-					break;
-				}
-			}
-		}
-		tcph->ack_seq = best_nonce;
-		e->best_hash = best_hash;
-		e->best_nonce = best_nonce;
-		if (best_hash < POW_THRESHOLD){
-			e->hash_iters = -1;
 		}
 	}
+	tcph->ack_seq = best_nonce;
+	e->best_hash = best_hash;
+	e->best_nonce = best_nonce;
+	if (best_hash < POW_THRESHOLD){
+		e->hash_iters = -1;
+	}
+}
 
-	SEC("xdp")
-	int xdp_pass(struct xdp_md *ctx) {
-		struct event *e;
-		e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-		if (!e) {
-			return XDP_PASS;
-		}
-		// memset((void *)e, 0, sizeof(struct event));
+SEC("xdp")
+int xdp_pass(struct xdp_md *ctx) {
+	struct event *e;
+	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+	if (!e) {
+		return XDP_PASS;
+	}
 
-		e->start_ts = bpf_ktime_get_ns();
+	e->start_ts = bpf_ktime_get_ns();
 
-		void *data = (void *)(long)ctx->data;
-		void *data_end = (void *)(long)ctx->data_end;
-		int packet_size = data_end - data;
+	void *data = (void *)(long)ctx->data;
+	void *data_end = (void *)(long)ctx->data_end;
+	int packet_size = data_end - data;
 
-		// Parse Ethernet Header
-		struct ethhdr *ethh = data;
-		if ((void *)ethh + sizeof(*ethh) <= data_end) {
-			if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
-				// Parse IPv4 Header
-				struct iphdr *iph = data + sizeof(*ethh);
-				if ((void *)iph + sizeof(*iph) <= data_end) {
-					if (iph->protocol == IPPROTO_TCP) {
-						// Parse TCP Header
-						struct tcphdr *tcph = (void *)iph + sizeof(*iph);
-						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							if(is_syn(tcph)){
-								// It's a SYN! Compute the proof of work
-								do_syn_pow(iph, tcph, e);
-							} else
-								bpf_ringbuf_discard(e, 0);
-								return XDP_PASS;
-							}
-						} else {
-							bpf_ringbuf_discard(e, 0);
-							return XDP_PASS;
-						}
-					} else {
-						bpf_ringbuf_discard(e, 0);
-						return XDP_PASS;
-					}
-				}
-			}
-
-			/*
-			else if (bpf_htons(ethh->h_proto) == ETH_P_IPV6) {
-				struct ipv6hdr *iph = data + sizeof(*ethh);
-				if ((void *)iph + sizeof(*iph) <= data_end) {
-					if(iph->nexthdr == IPPROTO_TCP) {
-						struct tcphdr *tcph = (void *)iph + sizeof(*iph);
-						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							if(is_syn(tcph)) {
-								// It's a SYN! Compute the proof of work
-								do_syn_pow(iph, tcph, e);
-							} else {
-								bpf_ringbuf_discard(e, 0);
-								return XDP_PASS;
-							}
+	// Parse Ethernet Header
+	struct ethhdr *ethh = data;
+	if ((void *)ethh + sizeof(*ethh) <= data_end) {
+		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+			// Parse IPv4 Header
+			struct iphdr *iph = data + sizeof(*ethh);
+			if ((void *)iph + sizeof(*iph) <= data_end) {
+				if (iph->protocol == IPPROTO_TCP) {
+					// Parse TCP Header
+					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+					if ((void *)tcph + sizeof(*tcph) <= data_end) {
+						if(is_syn(tcph)){
+							// It's a SYN! Compute the proof of work
+							do_syn_pow(iph, tcph, e);
 						} else {
 							bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
@@ -180,9 +151,7 @@ static const unsigned char T[256] = {
 					bpf_ringbuf_discard(e, 0);
 					return XDP_PASS;
 				}
-			}
-			*/
-			else {
+			} else {
 				bpf_ringbuf_discard(e, 0);
 				return XDP_PASS;
 			}
@@ -190,6 +159,11 @@ static const unsigned char T[256] = {
 			bpf_ringbuf_discard(e, 0);
 			return XDP_PASS;
 		}
-		bpf_ringbuf_submit(e, 0);
+	} else {
+		bpf_ringbuf_discard(e, 0);
 		return XDP_PASS;
 	}
+	e->end_ts = bpf_ktime_get_ns();
+	bpf_ringbuf_submit(e, 0);
+	return XDP_PASS;
+}
