@@ -136,12 +136,13 @@ static const unsigned char T[256] = {
 						// Parse TCP Header
 						struct tcphdr *tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							if(!is_syn(tcph)){
+							if(is_syn(tcph)){
+								// It's a SYN! Compute the proof of work
+								do_syn_pow(iph, tcph, e);
+							} else
 								bpf_ringbuf_discard(e, 0);
 								return XDP_PASS;
 							}
-							// It's a SYN! Compute the proof of work
-							do_syn_pow(iph, tcph, e);
 						} else {
 							bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
@@ -152,13 +153,18 @@ static const unsigned char T[256] = {
 					}
 				}
 			} else if (bpf_htons(ethh->h_proto) == ETH_P_IPV6) {
-				struct ipv6hdr *ip = data + sizeof(*eth);
-				if ((void *)ip + sizeof(*ip) <= data_end) {
-					if(ip->nexthdr == IPPROTO_TCP) {
+				struct ipv6hdr *iph = data + sizeof(*ethh);
+				if ((void *)iph + sizeof(*iph) <= data_end) {
+					if(iph->nexthdr == IPPROTO_TCP) {
 						struct tcphdr *tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							if(!is_syn(tcph)) cleaup(e);
-							do_syn_pow(iph, tcph, e);
+							if(is_syn(tcph)) {
+								// It's a SYN! Compute the proof of work
+								do_syn_pow(iph, tcph, e);
+							} else {
+								bpf_ringbuf_discard(e, 0);
+								return XDP_PASS;
+							}
 						} else {
 							bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
