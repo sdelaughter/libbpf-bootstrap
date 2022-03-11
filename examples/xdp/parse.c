@@ -155,9 +155,9 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	} else if (e->eth_protocol == 17) {
 		ip_protocol = proto_name_udp;
 	} else if (e->eth_protocol == 47) {
-		eth_protocol = proto_name_gre;
+		ip_protocol = proto_name_gre;
 	} else {
-		eth_protocol = proto_name_other;
+		ip_protocol = proto_name_other;
 	}
 
 	printf("%-8f | %-12u | %-8s | %-8s | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
