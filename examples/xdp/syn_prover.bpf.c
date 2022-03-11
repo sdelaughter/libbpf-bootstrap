@@ -52,7 +52,7 @@ static const unsigned char T[256] = {
 };
 
 
-unsigned long long Pearson64(const unsigned char *message, size_t len) {
+static unsigned long long Pearson64(const unsigned char *message, size_t len) {
 	size_t i;
 	size_t j;
 	unsigned char h;
