@@ -23,7 +23,7 @@ struct message_digest {
 	unsigned short dport;
 	unsigned long seq;
 	unsigned long ack_seq;
-}
+};
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -72,19 +72,8 @@ static bool is_syn(struct tcphdr* tcph) {
   return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-// static void build_syn_digest(const unsigned char* digest,
-// 															struct iphdr* iph,
-// 															struct tcphdr* tcph){
-// 	(unsigned long*)digest = iph->saddr;
-// 	(unsigned long*)digest + 32 = iph->daddr;
-// 	(unsigned short*)digest + 64 = tcph->source;
-// 	(unsigned short*)digest + 80 = tcph->dest;
-// 	(unsigned long*)digest + 96 = tcph->seq;
-// 	(unsigned long*)digest + 128 = iph->ack_seq;
-// }
-
 static unsigned long long syn_hash(struct message_digest* digest) {
-  return Pearson64((char *)message, sizeof(struct message_digest));
+  return Pearson64((char *)digest, sizeof(struct message_digest));
 }
 
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
@@ -96,14 +85,14 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
 	digest.daddr = iph->daddr;
-	digest.sport = tpch->sport;
-	digest.dport = tcph->dport;
+	digest.sport = tcph->source;
+	digest.dport = tcph->dest;
 	digest.seq = tcph->seq;
 
   #pragma unroll
   for (int i=0; i<POW_ITERS; i++) {
 		digest.ack_seq = nonce + i;
-    hash = syn_hash(digest);
+    hash = syn_hash(&digest);
     if (hash > best_hash) {
       best_nonce = nonce + i;
       best_hash = hash;
@@ -113,7 +102,7 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
     }
   }
 	tcph->ack_seq = best_nonce;
-	e->bash_hash = best_hash;
+	e->best_hash = best_hash;
 	e->best_nonce = best_nonce;
 	if (best_hash < POW_THRESHOLD){
 		e->hash_iters = -1;
