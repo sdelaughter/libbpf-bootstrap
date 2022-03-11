@@ -123,16 +123,25 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
   daddr_bytes[2] = (e->ip_daddr >> 16) & 0xFF;
   daddr_bytes[3] = (e->ip_daddr >> 24) & 0xFF;
 
+
+	char *proto_name_ipv4 = "IPv4";
+	char *proto_name_ipv6 = "IPv6";
+	char *proto_name_lldp = "LLDP";
+	char *proto_name_arp = "LLDP";
+	char *proto_name_other = "UNKNOWN";
+
+	char eth_protocol[8];
+
 	if (e->eth_protocol == 2048) {
-		char eth_protocol[8] = "IPv4";
+		&eth_protocol = proto_name_ipv4;
 	} else if (e->eth_protocol == 34525) {
-		char eth_protocol[8] = "IPv6";
+		&eth_protocol = proto_name_ipv4
 	} else if (e->eth_protocol == 35020) {
-		char eth_protocol[8] = "LLDP";
+		&eth_protocol = proto_name_ipv4
 	} else if (e->eth_protocol == 2054) {
-		char eth_protocol[8] = "ARP";
+		&eth_protocol = proto_name_ipv4
 	} else {
-		char eth_protocol[8] = "UNKNOWN";
+		&eth_protocol = proto_name_ipv4
 	}
 
 	printf("%-8f | %-12u | %-12s | %-4u | %-8u | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
