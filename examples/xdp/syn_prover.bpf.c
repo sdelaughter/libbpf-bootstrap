@@ -73,7 +73,7 @@ static const unsigned char T[256] = {
 	}
 
 	static unsigned long long syn_hash(struct message_digest* digest) {
-		return Pearson64((char *)digest, sizeof(struct message_digest));
+		return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
 	}
 
 	static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
@@ -90,7 +90,8 @@ static const unsigned char T[256] = {
 		digest.seq = tcph->seq;
 
 		#pragma unroll
-		for (int i=0; i<POW_ITERS; i++) {
+		int i=0;
+		for (i; i<POW_ITERS; i++) {
 			digest.ack_seq = nonce + i;
 			hash = syn_hash(&digest);
 			if (hash > best_hash) {
