@@ -52,29 +52,38 @@ static const unsigned char T[256] = {
 };
 
 
-static unsigned long long Pearson64(const unsigned char *message, size_t len) {
-	size_t i;
-	size_t j;
-	unsigned char h;
-	unsigned long long retval;
-
-	for (j = 0; j < sizeof(retval); ++j) {
-		// Change the first byte
-		h = T[(message[0] + j) % 256];
-		for (i = 1; i < len; ++i) {
-			h = T[h ^ message[i]];
-		}
-		retval = ((retval << 8) | h);
-	}
-	return retval;
-}
+// static unsigned long long Pearson64(const unsigned char *message, size_t len) {
+// 	size_t i;
+// 	size_t j;
+// 	unsigned char h;
+// 	unsigned long long retval;
+//
+// 	for (j = 0; j < sizeof(retval); ++j) {
+// 		// Change the first byte
+// 		h = T[(message[0] + j) % 256];
+// 		for (i = 1; i < len; ++i) {
+// 			h = T[h ^ message[i]];
+// 		}
+// 		retval = ((retval << 8) | h);
+// 	}
+// 	return retval;
+// }
 
 static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
 static unsigned long long syn_hash(struct message_digest* digest) {
-	return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
+	unsigned long long sum = 0;
+	sum = ((digest.saddr * digest.ack_seq) +
+				(digest.daddr * digest.ack_seq) +
+				(digest.sport * digest.ack_seq) +
+				(digest.dport * digest.ack_seq) +
+				(digest.seq * digest.ack_seq)) /
+				(digest.ack_seq * digest.ack_seq);
+	return sum;
+	bpf_printk("HASH: %ull\n", sum)
+	// return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
 }
 
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
