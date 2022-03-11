@@ -31,8 +31,7 @@ static const struct argp_option opts[] = {
 	{},
 };
 
-static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int ifindex)
-{
+static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int ifindex) {
 	int i, err;
 
 	for (i = 0; i < s->prog_cnt; i++) {
@@ -58,13 +57,12 @@ static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int if
 	return 0;
 }
 
-static error_t parse_arg(int key, char *arg, struct argp_state *state)
-{
+static error_t parse_arg(int key, char *arg, struct argp_state *state) {
 	switch (key) {
-	case 'v':
+		case 'v':
 		env.verbose = true;
 		break;
-	case 'i':
+		case 'i':
 		errno = 0;
 		env.ifindex = strtol(arg, NULL, 10);
 		if (errno || env.ifindex < 1) {
@@ -72,10 +70,10 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 			argp_usage(state);
 		}
 		break;
-	case ARGP_KEY_ARG:
+		case ARGP_KEY_ARG:
 		argp_usage(state);
 		break;
-	default:
+		default:
 		return ARGP_ERR_UNKNOWN;
 	}
 	return 0;
@@ -87,37 +85,29 @@ static const struct argp argp = {
 	.doc = argp_program_doc,
 };
 
-static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
-{
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
 	if (level == LIBBPF_DEBUG && !env.verbose)
-		return 0;
+	return 0;
 	return vfprintf(stderr, format, args);
 }
 
 static volatile bool exiting = false;
 
-static void sig_handler(int sig)
-{
+static void sig_handler(int sig) {
 	exiting = true;
 }
 
-static int handle_event(void *ctx, void *data, size_t data_sz)
-{
+static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
 	if(!start_ts){
-		start_ts = e->ts;
+		start_ts = e->start_ts;
 	}
-
 	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
-	unsigned long long duration (e->start_ts - e->end_ts);
-
-	unsigned long long start_ts;
-	unsigned long long end_ts;
-	unsigned int hash_iters;
+	unsigned long long duration = (e->start_ts - e->end_ts);
 
 	printf("%-8f | %-8u | %u\n",
-	       norm_ts, duration, e->hash_iters;
+	norm_ts, duration, e->hash_iters);
 	return 0;
 }
 
@@ -130,7 +120,7 @@ int main(int argc, char **argv)
 	/* Parse command line arguments */
 	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
 	if (err)
-		return err;
+	return err;
 
 	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
 	/* Set up libbpf errors and debug info callback */
@@ -179,7 +169,7 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	printf("%-8s | %-8s | %s\n",
-	       "TIME", "DURATION", "ITERS");
+	"TIME", "DURATION", "ITERS");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
@@ -193,7 +183,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-cleanup:
+	cleanup:
 	/* Clean up */
 	ring_buffer__free(rb);
 	syn_prover_bpf__detach(skel);
