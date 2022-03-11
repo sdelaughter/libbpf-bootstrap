@@ -75,12 +75,12 @@ static bool is_syn(struct tcphdr* tcph) {
 
 static unsigned long long syn_hash(struct message_digest* digest) {
 	unsigned long long sum = 0;
-	sum = ((digest.saddr * digest.ack_seq) +
-				(digest.daddr * digest.ack_seq) +
-				(digest.sport * digest.ack_seq) +
-				(digest.dport * digest.ack_seq) +
-				(digest.seq * digest.ack_seq)) /
-				(digest.ack_seq * digest.ack_seq);
+	sum = ((digest->saddr * digest->ack_seq) +
+				(digest->daddr * digest->ack_seq) +
+				(digest->sport * digest->ack_seq) +
+				(digest->dport * digest->ack_seq) +
+				(digest->seq * digest->ack_seq)) /
+				(digest->ack_seq * digest->ack_seq);
 	return sum;
 	bpf_printk("HASH: %ull\n", sum)
 	// return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
