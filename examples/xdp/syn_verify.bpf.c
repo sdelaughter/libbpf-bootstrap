@@ -129,11 +129,12 @@ int xdp_pass(struct xdp_md *ctx) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
 							unsigned long hash = do_syn_verify(iph, tcph, e);
+							unsigned char valid = hash >= POW_THRESHOLD;
 							e->hash = hash;
-							e->valid = (hash >= POW_THRESHOLD);
+							e->valid = valid;
 							e->end_ts = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
-							if(e->valid) {
+							if(valid) {
 								return XDP_PASS;
 							} else{
 								return XDP_DROP;
