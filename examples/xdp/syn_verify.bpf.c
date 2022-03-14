@@ -52,22 +52,22 @@ static const unsigned char T[256] = {
 };
 
 
-// static unsigned long long Pearson64(const unsigned char *message, size_t len) {
-// 	size_t i;
-// 	size_t j;
-// 	unsigned char h;
-// 	unsigned long long retval;
-//
-// 	for (j = 0; j < sizeof(retval); ++j) {
-// 		// Change the first byte
-// 		h = T[(message[0] + j) % 256];
-// 		for (i = 1; i < len; ++i) {
-// 			h = T[h ^ message[i]];
-// 		}
-// 		retval = ((retval << 8) | h);
-// 	}
-// 	return retval;
-// }
+static unsigned long long Pearson64(const unsigned char *message, size_t len) {
+	size_t i;
+	size_t j;
+	unsigned char h;
+	unsigned long long retval;
+
+	for (j = 0; j < sizeof(retval); ++j) {
+		// Change the first byte
+		h = T[(message[0] + j) % 256];
+		for (i = 1; i < len; ++i) {
+			h = T[h ^ message[i]];
+		}
+		retval = ((retval << 8) | h);
+	}
+	return retval;
+}
 
 static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
