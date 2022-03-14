@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	printf("%-8s | %-14s | %s\n",
-	"TIME", "DURATION", "ITERS");
+	"TIME", "DURATION (ns)", "ITERS");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
