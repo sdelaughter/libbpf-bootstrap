@@ -16,6 +16,7 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
+
 struct message_digest {
 	unsigned long saddr;
 	unsigned long daddr;
@@ -23,7 +24,7 @@ struct message_digest {
 	unsigned short dport;
 	unsigned long seq;
 	unsigned long ack_seq;
-};
+} digest;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -94,7 +95,6 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	unsigned long hash = 0;
 	unsigned long best_hash = 0;
 
-	struct message_digest digest;
 	digest.saddr = iph->saddr;
 	digest.daddr = iph->daddr;
 	digest.sport = tcph->source;
@@ -103,11 +103,11 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 
 	#pragma unroll
 	for (int i=0; i<POW_ITERS; i++) {
-		// e->hash_iters = i+1;
-		// digest.ack_seq = nonce + i;
-		// hash = syn_hash(&digest);
-		nonce = bpf_get_prandom_u32();
-		hash = nonce;
+		// nonce = bpf_get_prandom_u32();
+		nonce = 0;
+		digest.ack_seq = nonce + i;
+		hash = syn_hash(&digest);
+
 		if (hash > best_hash) {
 			best_nonce = nonce + i;
 			best_hash = hash;
