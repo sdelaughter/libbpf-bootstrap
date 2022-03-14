@@ -127,10 +127,10 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   if (old_ack_seq == tcph->ack_seq){
     return;
   }
-  __sum16 sum = old_ack_seq + (~ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
-  sum += ntohs(tcph->check);
+  __sum16 sum = old_ack_seq + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
+  sum += bpf_ntohs(tcph->check);
   sum = (sum & 0xffff) + (sum>>16);
-  tcph->check = htons(sum + (sum>>16) + 1);
+  tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
 
 SEC("xdp")
