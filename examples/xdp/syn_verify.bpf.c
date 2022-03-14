@@ -130,13 +130,13 @@ int xdp_pass(struct xdp_md *ctx) {
 							// It's a SYN! Compute the proof of work
 							unsigned long hash = do_syn_verify(iph, tcph, e);
 							e->hash = hash;
-							e->valid = hash >= POW_THRESHOLD;
+							e->valid = (hash >= POW_THRESHOLD);
 							e->end_ts = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
 							if(e->valid) {
 								return XDP_PASS;
 							} else{
-								return XDP_DROP;
+								return XDP_PASS;
 							}
 						} else {
 							bpf_ringbuf_discard(e, 0);
