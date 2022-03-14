@@ -106,7 +106,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
 	float duration = (e->start_ts - e->end_ts) / 1000000.0;
 
-	printf("%-8f | %-14llu | %-8lu | %u\n",
+	printf("%-8f | %-14f | %-8lu | %u\n",
 	norm_ts, duration, e->hash, e->valid);
 	return 0;
 }
