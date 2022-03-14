@@ -16,7 +16,7 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
-static struct message_digest {
+struct message_digest {
 	unsigned long saddr;
 	unsigned long daddr;
 	unsigned short sport;
