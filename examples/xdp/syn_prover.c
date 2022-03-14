@@ -106,12 +106,9 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
 	unsigned long long duration = (e->end_ts - e->start_ts);
 
-	if (e->hash_iters < POW_THRESHOLD) {
-		printf("%-8f | %-14llu | %u\n",
-		norm_ts, duration, e->hash_iters);
-		return 0;
-	}
-
+	printf("%-8f | %-14llu | %u\n",
+	norm_ts, duration, e->hash_iters);
+	return 0;
 }
 
 int main(int argc, char **argv)
