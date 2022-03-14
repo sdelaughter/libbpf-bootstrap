@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
 /* Copyright (c) 2020 Facebook */
 
-#ifndef __SYN_PROVER_H
-#define __SYN_PROVER_H
+#ifndef __SYN_VERIFY_H
+#define __SYN_VERIFY_H
 
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
@@ -18,4 +18,4 @@ struct event {
 	bool valid;
 };
 
-#endif /* __SYN_PROVER_H */
+#endif /* __SYN_VERIFY_H */
