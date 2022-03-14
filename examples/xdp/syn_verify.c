@@ -104,7 +104,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 		start_ts = e->start_ts;
 	}
 	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
-	unsigned long long = (e->end_ts - e->start_ts);
+	unsigned long long duration = (e->end_ts - e->start_ts);
 
 	printf("%-8f | %-14llu | %-8lu | %u\n",
 	norm_ts, duration, e->hash, e->valid);
