@@ -123,6 +123,16 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	}
 }
 
+static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
+  if (old_ack_seq == tcph->ack_seq){
+    return;
+  }
+  __sum16 sum = old_ack_seq + (~ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
+  sum += ntohs(tcph->check);
+  sum = (sum & 0xffff) + (sum>>16);
+  tcph->check = htons(sum + (sum>>16) + 1);
+}
+
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
 	struct event *e;
@@ -151,6 +161,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
 							do_syn_pow(iph, tcph, e);
+							update_tcp_csum(tcph, 0);
 						} else {
 							bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
