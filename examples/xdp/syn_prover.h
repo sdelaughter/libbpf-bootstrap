@@ -4,15 +4,9 @@
 #ifndef __SYN_PROVER_H
 #define __SYN_PROVER_H
 
-const unsigned long ETH_P_IP = 2048;
-const unsigned long ETH_P_IPV6 = 34525;
-const unsigned long ETH_P_LLDP = 35020;
-const unsigned long ETH_P_ARP = 2054;
-
-// const unsigned long long POW_THRESHOLD  = 2147483648; // k=2
-const unsigned long long POW_THRESHOLD  = 3221225472; // k=4
-// const unsigned long long POW_THRESHOLD  = 3758096384; // k=8
 const int POW_ITERS = 10;
+
+#include "syn_pow.h"
 
 struct event {
 	unsigned long long start_ts;
