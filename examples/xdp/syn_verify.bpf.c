@@ -136,7 +136,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							if(e->valid) {
 								return XDP_PASS;
 							} else{
-								return XDP_PASS;
+								return XDP_DROP;
 							}
 						} else {
 							bpf_ringbuf_discard(e, 0);
