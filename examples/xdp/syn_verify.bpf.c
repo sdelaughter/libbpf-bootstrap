@@ -74,33 +74,28 @@ static bool is_syn(struct tcphdr* tcph) {
 }
 
 static unsigned long syn_hash(struct message_digest* digest) {
-	unsigned long sum = 0;
-	sum = ((digest->saddr * digest->ack_seq) +
-				(digest->daddr * digest->ack_seq) +
-				(digest->sport * digest->ack_seq) +
-				(digest->dport * digest->ack_seq) +
-				(digest->seq * digest->ack_seq)) /
-				(digest->ack_seq * digest->ack_seq);
-	return sum;
-	bpf_printk("HASH: %ull\n", sum);
-	// return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
+	// unsigned long sum = 0;
+	// sum = ((digest->saddr * digest->ack_seq) +
+	// 			(digest->daddr * digest->ack_seq) +
+	// 			(digest->sport * digest->ack_seq) +
+	// 			(digest->dport * digest->ack_seq) +
+	// 			(digest->seq * digest->ack_seq)) /
+	// 			(digest->ack_seq * digest->ack_seq);
+	// return sum;
+	// bpf_printk("HASH: %ull\n", sum);
+	return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned long do_syn_verify(unsigned long* hash,
-																	 struct iphdr* iph,
-																	 struct tcphdr* tcph,
-																	 struct event* e) {
-
+static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
 	digest.daddr = iph->daddr;
 	digest.sport = tcph->source;
 	digest.dport = tcph->dest;
 	digest.seq = tcph->seq;
-	digest.ack_seq = tcph->ack_seq
+	digest.ack_seq = tcph->ack_seq;
 
-	hash = syn_hash(&digest);
-	return hash;
+	return syn_hash(&digest);
 }
 
 SEC("xdp")
@@ -130,8 +125,7 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-							unsigned long hash;
-							do_syn_verify(&hash, iph, tcph, e);
+							unsigned long hash = do_syn_verify(iph, tcph, e);
 							e->hash = hash;
 							e->valid = hash >= POW_THRESHOLD;
 							e->end_ts = bpf_ktime_get_ns();
