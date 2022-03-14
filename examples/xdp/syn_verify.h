@@ -15,7 +15,7 @@ struct event {
 	unsigned long long start_ts;
 	unsigned long long end_ts;
 	unsigned long hash;
-	bool valid;
+	unsigned char valid;
 };
 
 #endif /* __SYN_VERIFY_H */
