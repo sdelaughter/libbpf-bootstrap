@@ -135,7 +135,7 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	// bpf_printk("HASH: %ull\n", sum);
 	// return Pearson64((unsigned char *)digest, sizeof(struct message_digest));
 	// return digest->ack_seq;
-	return SuperFastHash((const char *)digest, sizeof(struct message_digest))
+	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
 static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
