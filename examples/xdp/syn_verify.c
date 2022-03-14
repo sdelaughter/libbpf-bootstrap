@@ -109,8 +109,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	if(!e->valid) {
 		printf("%-8f | %-14llu | %-8lu | %u\n",
 		norm_ts, duration, e->hash, e->valid);
-		return 0;
 	}
+	return 0;
 }
 
 int main(int argc, char **argv)
