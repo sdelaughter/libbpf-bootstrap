@@ -106,8 +106,10 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
 	unsigned long long duration = (e->end_ts - e->start_ts);
 
-	printf("%-8f | %-14llu | %u\n",
-	norm_ts, duration, e->hash_iters);
+	if (env.verbose) {
+		printf("%-8f | %-14llu | %u\n",
+		norm_ts, duration, e->hash_iters);
+	}
 	return 0;
 }
 
@@ -168,8 +170,10 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-8s | %-14s | %s\n",
-	"TIME", "DURATION (ns)", "ITERS");
+	if (env.verbose) {
+		printf("%-8s | %-14s | %s\n",
+		"TIME", "DURATION (ns)", "ITERS");
+	}
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
