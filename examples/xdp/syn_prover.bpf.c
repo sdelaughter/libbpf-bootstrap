@@ -90,7 +90,8 @@ static unsigned long syn_hash(struct message_digest* digest) {
 
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	// unsigned long nonce = bpf_get_prandom_u32();
-	unsigned long nonce = 0;
+	// unsigned long nonce = 0;
+	unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
 	unsigned long best_nonce = nonce;
 	unsigned long hash = 0;
 	unsigned long best_hash = 0;
@@ -119,9 +120,6 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	tcph->ack_seq = best_nonce;
 	e->best_hash = best_hash;
 	e->best_nonce = best_nonce;
-	if (best_hash < POW_THRESHOLD){
-		e->hash_iters = -1;
-	}
 }
 
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
