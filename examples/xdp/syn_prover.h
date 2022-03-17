@@ -19,7 +19,7 @@ const unsigned long ETH_P_IPV6 = 34525;
 const unsigned long POW_THRESHOLD  = 4160749568; // k=32
 // const unsigned long POW_THRESHOLD  = 4227858432; // k=64
 
-const unsigned short MAX_ITERS = 256;
+const unsigned short MAX_ITERS = 200;
 
 struct event {
 	unsigned long long start_ts;
