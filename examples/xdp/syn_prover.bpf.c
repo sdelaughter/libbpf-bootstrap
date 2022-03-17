@@ -88,7 +88,7 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event* e){
+static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
 	// unsigned long nonce = bp, __u32 old_ack_seqf_get_prandom_u32();
 	unsigned long nonce = 0;
 	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
@@ -106,7 +106,7 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event
 	if (POW_THRESHOLD > 0) {
 		#pragma unroll
 		for (unsigned int i=0; i<POW_ITERS; i++) {
-			// e->hash_iters = i+1;
+			e->hash_iters = i+1;
 			digest.ack_seq = nonce + i;
 			hash = syn_hash(&digest);
 
@@ -119,8 +119,8 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event
 			}
 		}
 		tcph->ack_seq = bpf_htons(best_nonce);
-		// e->best_hash = best_hash;
-		// e->best_nonce = best_nonce;
+		e->best_hash = best_hash;
+		e->best_nonce = best_nonce;
 	}
 }
 
@@ -136,13 +136,7 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
-	// struct event *e;
-	// e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	// if (!e) {
-	// 	return XDP_PASS;
-	// }
-
-	// e->start_ts = bpf_ktime_get_ns();
+	unsigned long long start_time = bpf_ktime_get_ns();
 
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
@@ -161,8 +155,17 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-							do_syn_pow(iph, tcph);//, e);
+							do_syn_pow(iph, tcph, e);
 							update_tcp_csum(tcph, 0);
+
+							struct event *e;
+							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+							if (!e) {
+								return XDP_PASS;
+							}
+							e->start_ts = start_time;
+							e->end_ts = bpf_ktime_get_ns();
+							bpf_ringbuf_submit(e, 0);
 						} else {
 							// bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
@@ -187,7 +190,5 @@ int xdp_pass(struct xdp_md *ctx) {
 		// bpf_ringbuf_discard(e, 0);
 		return XDP_PASS;
 	}
-	// e->end_ts = bpf_ktime_get_ns();
-	// bpf_ringbuf_submit(e, 0);
 	return XDP_PASS;
 }
