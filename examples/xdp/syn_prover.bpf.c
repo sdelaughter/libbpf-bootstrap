@@ -88,9 +88,8 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
+static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
 	unsigned short hash_iters = 0;
-
 	// unsigned long nonce = bp, __u32 old_ack_seqf_get_prandom_u32();
 	unsigned long nonce = 0;
 	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
