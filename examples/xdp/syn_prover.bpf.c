@@ -89,7 +89,7 @@ static unsigned long syn_hash(struct message_digest* digest) {
 }
 
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event* e){
-	// unsigned long nonce = bpf_get_prandom_u32();
+	// unsigned long nonce = bp, __u32 old_ack_seqf_get_prandom_u32();
 	unsigned long nonce = 0;
 	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
 	unsigned long best_nonce = nonce;
@@ -118,14 +118,17 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event
 				}
 			}
 		}
-		tcph->ack_seq = best_nonce;
+		tcph->ack_seq = bpf_htons(best_nonce);
 		// e->best_hash = best_hash;
 		// e->best_nonce = best_nonce;
 	}
 }
 
-static void update_tcp_csum(struct tcphdr* tcph) {
-  __sum16 sum = 0 + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
+static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
+  if (old_ack_seq == tcph->ack_seq){
+    return;
+  }
+  __sum16 sum = old_ack_seq + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
   sum += bpf_ntohs(tcph->check);
   sum = (sum & 0xffff) + (sum>>16);
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
@@ -159,7 +162,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
 							do_syn_pow(iph, tcph);//, e);
-							update_tcp_csum(tcph);
+							update_tcp_csum(tcph, 0);
 						} else {
 							// bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
