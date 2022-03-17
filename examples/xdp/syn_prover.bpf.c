@@ -103,23 +103,25 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event
 	digest.dport = tcph->dest;
 	digest.seq = tcph->seq;
 
-	#pragma unroll
-	for (unsigned int i=0; i<POW_ITERS; i++) {
-		// e->hash_iters = i+1;
-		digest.ack_seq = nonce + i;
-		hash = syn_hash(&digest);
+	if (POW_THRESHOLD > 0) {
+		#pragma unroll
+		for (unsigned int i=0; i<POW_ITERS; i++) {
+			// e->hash_iters = i+1;
+			digest.ack_seq = nonce + i;
+			hash = syn_hash(&digest);
 
-		if (hash > best_hash) {
-			best_nonce = nonce + i;
-			best_hash = hash;
-			if (best_hash >= POW_THRESHOLD) {
-				break;
+			if (hash > best_hash) {
+				best_nonce = nonce + i;
+				best_hash = hash;
+				if (best_hash >= POW_THRESHOLD) {
+					break;
+				}
 			}
 		}
+		tcph->ack_seq = best_nonce;
+		// e->best_hash = best_hash;
+		// e->best_nonce = best_nonce;
 	}
-	tcph->ack_seq = best_nonce;
-	// e->best_hash = best_hash;
-	// e->best_nonce = best_nonce;
 }
 
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
