@@ -106,7 +106,7 @@ static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
 
 	if (POW_THRESHOLD > 0) {
 		#pragma unroll
-		for (unsigned short i=0; i<POW_ITERS; i++) {
+		for (unsigned short i=0; i<MAX_ITERS; i++) {
 			digest.ack_seq = nonce + i;
 			hash = syn_hash(&digest);
 			hash_iters += 1;

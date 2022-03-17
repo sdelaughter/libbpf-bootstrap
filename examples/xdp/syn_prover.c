@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	if (env.verbose) {
-		printf("%-8s | %-14s | %8s | %16s\n",
+		printf("%-8s | %-14s | %-8s | %-16s\n",
 		"TIME", "DURATION (ns)", "ITERS", "NONCE");
 	}
 	while (!exiting) {

@@ -104,7 +104,7 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event
 	digest.seq = tcph->seq;
 
 	#pragma unroll
-	for (unsigned int i=0; i<POW_ITERS; i++) {
+	for (unsigned int i=0; i<MAX_ITERS; i++) {
 		// e->hash_iters = i+1;
 		digest.ack_seq = nonce + i;
 		hash = syn_hash(&digest);
