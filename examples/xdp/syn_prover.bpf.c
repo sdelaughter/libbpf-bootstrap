@@ -28,7 +28,7 @@ struct message_digest {
 struct pow_result {
 	unsigned long best_hash;
 	unsigned short hash_iters;
-}
+};
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
