@@ -25,6 +25,11 @@ struct message_digest {
 	unsigned long ack_seq;
 };
 
+struct pow_result {
+	unsigned long best_hash;
+	unsigned short hash_iters;
+}
+
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 256 * 1024);
@@ -88,14 +93,15 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
-	unsigned short hash_iters = 0;
+static struct pow_result do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
+	struct pow_result res;
+	res.best_hash = 0;
+	res.hash_iters = 0;
+	unsigned long hash = 0;
 	// unsigned long nonce = bp, __u32 old_ack_seqf_get_prandom_u32();
 	unsigned long nonce = 0;
 	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
 	unsigned long best_nonce = nonce;
-	unsigned long hash = 0;
-	unsigned long best_hash = 0;
 
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
@@ -109,18 +115,18 @@ static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
 		for (unsigned short i=0; i<MAX_ITERS; i++) {
 			digest.ack_seq = nonce + i;
 			hash = syn_hash(&digest);
-			hash_iters += 1;
-			if (hash > best_hash) {
+			res.hash_iters += 1;
+			if (hash > res.best_hash) {
 				best_nonce = nonce + i;
-				best_hash = hash;
-				if (best_hash >= POW_THRESHOLD) {
+				res.best_hash = hash;
+				if (res.best_hash >= POW_THRESHOLD) {
 					break;
 				}
 			}
 		}
 		tcph->ack_seq = bpf_htons(best_nonce);
 	}
-	return hash_iters;
+	return res;
 }
 
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
@@ -155,7 +161,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
 
-							unsigned short hash_iters = do_syn_pow(iph, tcph);
+							struct pow_result res = do_syn_pow(iph, tcph);
 							update_tcp_csum(tcph, 0);
 
 							struct event *e;
@@ -166,7 +172,8 @@ int xdp_pass(struct xdp_md *ctx) {
 							}
 							e->start_ts = start_time;
 							e->end_ts = bpf_ktime_get_ns();
-							e->hash_iters = hash_iters;
+							e->hash_iters = res->hash_iters;
+							e->best_hash = res->best_hash;
 							e->best_nonce = bpf_ntohs(tcph->ack_seq);
 							bpf_ringbuf_submit(e, 0);
 						} else {
