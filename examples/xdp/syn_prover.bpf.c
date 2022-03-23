@@ -165,8 +165,9 @@ int xdp_pass(struct xdp_md *ctx) {
 							}
 							e->start_ts = start_time;
 
-							struct pow_result res = do_syn_pow(iph, tcph, e);
+							do_syn_pow(iph, tcph, e);
 							update_tcp_csum(tcph, 0);
+							
 							e->end_ts = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
 						} else {
