@@ -88,8 +88,9 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event* e){
-	// unsigned long nonce = bpf_get_prandom_u32();
+static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
+	unsigned short hash_iters = 0;
+	// unsigned long nonce = bp, __u32 old_ack_seqf_get_prandom_u32();
 	unsigned long nonce = 0;
 	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
 	unsigned long best_nonce = nonce;
@@ -103,23 +104,23 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event
 	digest.dport = tcph->dest;
 	digest.seq = tcph->seq;
 
-	#pragma unroll
-	for (unsigned int i=0; i<POW_ITERS; i++) {
-		// e->hash_iters = i+1;
-		digest.ack_seq = nonce + i;
-		hash = syn_hash(&digest);
-
-		if (hash > best_hash) {
-			best_nonce = nonce + i;
-			best_hash = hash;
-			if (best_hash >= POW_THRESHOLD) {
-				break;
+	if (POW_THRESHOLD > 0) {
+		#pragma unroll
+		for (unsigned short i=0; i<MAX_ITERS; i++) {
+			digest.ack_seq = nonce + i;
+			hash = syn_hash(&digest);
+			hash_iters += 1;
+			if (hash > best_hash) {
+				best_nonce = nonce + i;
+				best_hash = hash;
+				if (best_hash >= POW_THRESHOLD) {
+					break;
+				}
 			}
 		}
+		tcph->ack_seq = bpf_htons(best_nonce);
 	}
-	tcph->ack_seq = best_nonce;
-	// e->best_hash = best_hash;
-	// e->best_nonce = best_nonce;
+	return hash_iters;
 }
 
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
@@ -134,13 +135,7 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
-	// struct event *e;
-	// e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	// if (!e) {
-	// 	return XDP_PASS;
-	// }
-
-	// e->start_ts = bpf_ktime_get_ns();
+	unsigned long long start_time = bpf_ktime_get_ns();
 
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
@@ -159,8 +154,21 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-							do_syn_pow(iph, tcph);//, e);
+
+							unsigned short hash_iters = do_syn_pow(iph, tcph);
 							update_tcp_csum(tcph, 0);
+
+							struct event *e;
+							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+							if (!e) {
+								bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
+								return XDP_PASS;
+							}
+							e->start_ts = start_time;
+							e->end_ts = bpf_ktime_get_ns();
+							e->hash_iters = hash_iters;
+							e->best_nonce = bpf_ntohs(tcph->ack_seq);
+							bpf_ringbuf_submit(e, 0);
 						} else {
 							// bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
@@ -185,7 +193,5 @@ int xdp_pass(struct xdp_md *ctx) {
 		// bpf_ringbuf_discard(e, 0);
 		return XDP_PASS;
 	}
-	// e->end_ts = bpf_ktime_get_ns();
-	// bpf_ringbuf_submit(e, 0);
 	return XDP_PASS;
 }
