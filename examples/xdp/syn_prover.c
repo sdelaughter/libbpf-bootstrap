@@ -98,7 +98,7 @@ static void sig_handler(int sig) {
 }
 
 static int handle_event(void *ctx, void *data, size_t data_sz) {
-	// const struct event *e = data;
+	const struct event *e = data;
 	//
 	// if(!start_ts){
 	// 	start_ts = e->start_ts;
