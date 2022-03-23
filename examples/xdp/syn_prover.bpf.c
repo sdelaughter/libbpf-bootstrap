@@ -172,8 +172,8 @@ int xdp_pass(struct xdp_md *ctx) {
 							}
 							e->start_ts = start_time;
 							e->end_ts = bpf_ktime_get_ns();
-							e->hash_iters = res->hash_iters;
-							e->best_hash = res->best_hash;
+							e->hash_iters = res.hash_iters;
+							e->best_hash = res.best_hash;
 							e->best_nonce = bpf_ntohs(tcph->ack_seq);
 							bpf_ringbuf_submit(e, 0);
 						} else {
