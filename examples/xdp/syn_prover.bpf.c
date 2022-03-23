@@ -89,8 +89,6 @@ static unsigned long syn_hash(struct message_digest* digest) {
 }
 
 static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
-	struct pow_result res;
-
 	unsigned long hash = 0;
 	unsigned long best_hash = 0;
 	unsigned short hash_iters = 0;
