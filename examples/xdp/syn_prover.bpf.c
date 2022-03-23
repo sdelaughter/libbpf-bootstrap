@@ -123,7 +123,6 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) 
 		e->best_hash = best_hash;
 		e->hash_iters = hash_iters;
 	}
-	return res;
 }
 
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
@@ -167,7 +166,7 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							do_syn_pow(iph, tcph, e);
 							update_tcp_csum(tcph, 0);
-							
+
 							e->end_ts = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
 						} else {
