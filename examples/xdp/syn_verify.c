@@ -100,15 +100,9 @@ static void sig_handler(int sig) {
 static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
-	if(!start_ts){
-		start_ts = e->start_ts;
-	}
-	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
-	unsigned long long duration = (e->end_ts - e->start_ts);
-
 	if(!e->valid) {
-		printf("%-8f | %-14llu | %-8lu | %u\n",
-		norm_ts, duration, e->hash, e->valid);
+		printf("%llu, %llu, %lu | %u\n",
+		e->start_ts, e->end_ts, e->hash, e->valid);
 	}
 	return 0;
 }
@@ -170,8 +164,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-8s | %-14s | %-8s | %s\n",
-	"TIME (s)", "DURATION (ns)", "HASH", "VALID");
+	printf("%s, %s, %s, %s\n",
+	"start", "end", "hash", "valid");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
