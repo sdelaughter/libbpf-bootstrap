@@ -88,14 +88,14 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
+static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
+	unsigned long hash = 0;
+	unsigned long best_hash = 0;
 	unsigned short hash_iters = 0;
 	// unsigned long nonce = bp, __u32 old_ack_seqf_get_prandom_u32();
 	unsigned long nonce = 0;
 	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
 	unsigned long best_nonce = nonce;
-	unsigned long hash = 0;
-	unsigned long best_hash = 0;
 
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
@@ -119,8 +119,10 @@ static unsigned short do_syn_pow(struct iphdr* iph, struct tcphdr* tcph) {
 			}
 		}
 		tcph->ack_seq = bpf_htons(best_nonce);
+		e->best_nonce = best_nonce;
+		e->best_hash = best_hash;
+		e->hash_iters = hash_iters;
 	}
-	return hash_iters;
 }
 
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
@@ -154,10 +156,6 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-
-							unsigned short hash_iters = do_syn_pow(iph, tcph);
-							update_tcp_csum(tcph, 0);
-
 							struct event *e;
 							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 							if (!e) {
@@ -165,9 +163,11 @@ int xdp_pass(struct xdp_md *ctx) {
 								return XDP_PASS;
 							}
 							e->start_ts = start_time;
+
+							do_syn_pow(iph, tcph, e);
+							update_tcp_csum(tcph, 0);
+
 							e->end_ts = bpf_ktime_get_ns();
-							e->hash_iters = hash_iters;
-							e->best_nonce = bpf_ntohs(tcph->ack_seq);
 							bpf_ringbuf_submit(e, 0);
 						} else {
 							// bpf_ringbuf_discard(e, 0);

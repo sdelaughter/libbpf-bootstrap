@@ -99,16 +99,16 @@ static void sig_handler(int sig) {
 
 static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
-
-	if(!start_ts){
-		start_ts = e->start_ts;
-	}
-	float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
-	unsigned long long duration = (e->end_ts - e->start_ts);
-
+	//
+	// if(!start_ts){
+	// 	start_ts = e->start_ts;
+	// }
+	// float norm_ts = (e->start_ts - start_ts) / 1000000000.0;
+	// unsigned long long duration = (e->end_ts - e->start_ts);
+	//
 	if (env.verbose) {
-		printf("%-8f | %-14llu | %8u | %16lu\n",
-		norm_ts, duration, e->hash_iters, e->best_nonce);
+		printf("%llu, %llu, %u, %lu, %lu\n",
+		e->start_ts, e->end_ts, e->hash_iters, e->best_nonce, e->best_hash);
 	}
 	return 0;
 }
@@ -171,8 +171,8 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	if (env.verbose) {
-		printf("%-8s | %-14s | %-8s | %-16s\n",
-		"TIME", "DURATION (ns)", "ITERS", "NONCE");
+		printf("%s, %s, %s, %s, %s\n",
+		"start", "end", "iters", "nonce", "hash");
 	}
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
