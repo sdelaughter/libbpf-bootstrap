@@ -89,7 +89,7 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph, struct event* e) {
+static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph) {
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
 	digest.daddr = iph->daddr;
@@ -128,7 +128,7 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-							unsigned long hash = do_syn_verify(iph, tcph, e);
+							unsigned long hash = do_syn_verify(iph, tcph);
 							unsigned char valid = hash >= POW_THRESHOLD;
 							e->hash = hash;
 							e->valid = valid;
