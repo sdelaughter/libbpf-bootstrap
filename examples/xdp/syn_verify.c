@@ -100,7 +100,7 @@ static void sig_handler(int sig) {
 static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
-	if(e->verbose) {
+	if(env->verbose) {
 		printf("%llu, %llu, %lu, %u\n",
 		e->start_ts, e->end_ts, e->hash, e->valid);
 	}
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	if(e->verbose){
+	if(env->verbose){
 		printf("%s, %s, %s, %s\n",
 		"start", "end", "hash", "valid");
 	}
