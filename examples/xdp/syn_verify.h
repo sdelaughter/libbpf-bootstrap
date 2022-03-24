@@ -23,4 +23,4 @@ struct event {
 	unsigned char valid;
 };
 
-#endif /* __SYN_VERIFY_H */``
+#endif /* __SYN_VERIFY_H */
