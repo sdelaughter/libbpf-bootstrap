@@ -134,13 +134,7 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
-	// struct event *e;
-	// e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	// if (!e) {
-	// 	return XDP_PASS;
-	// }
-
-	// e->start_ts = bpf_ktime_get_ns();
+	unsigned long long start_time = bpf_ktime_get_ns();
 
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
@@ -159,6 +153,15 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
+							struct event *e;
+							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+							if (!e) {
+								return XDP_PASS;
+							}
+
+							e->start_ts = start_time;
+							e->end_ts = bpf_ktime_get_ns();
+							bpf_ringbuf_submit(e, 0);
 							// do_syn_pow(iph, tcph);//, e);
 							// update_tcp_csum(tcph, 0);
 							return XDP_PASS;
@@ -186,7 +189,5 @@ int xdp_pass(struct xdp_md *ctx) {
 		// bpf_ringbuf_discard(e, 0);
 		return XDP_PASS;
 	}
-	// e->end_ts = bpf_ktime_get_ns();
-	// bpf_ringbuf_submit(e, 0);
 	return XDP_PASS;
 }
