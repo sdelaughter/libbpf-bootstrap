@@ -96,7 +96,7 @@ static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph) {
 	digest.sport = tcph->source;
 	digest.dport = tcph->dest;
 	digest.seq = tcph->seq;
-	digest.ack_seq = tcph->ack_seq;
+	digest.ack_seq = bpf_ntohs(tcph->ack_seq);
 
 	return syn_hash(&digest);
 }
