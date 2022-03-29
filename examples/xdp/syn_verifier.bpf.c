@@ -95,7 +95,7 @@ static unsigned long check_syn_hash(struct iphdr* iph, struct tcphdr* tcph) {
 	digest.sport = tcph->source;
 	digest.dport = tcph->dest;
 	digest.seq = tcph->seq;
-	digest.ack_seq = tcph->ack_seq;
+	digest.ack_seq = bpf_ntohs(tcph->ack_seq);
 
 	unsigned long hash = syn_hash(&digest);
 	return hash;
