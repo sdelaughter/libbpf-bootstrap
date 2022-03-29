@@ -102,7 +102,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 
 	if (env.verbose) {
 		printf("%u, %llu, %llu\n",
-		e->status, e->start_ts, e->end_ts);
+		e->status, e->start, e->end);
 	}
 	return 0;
 }

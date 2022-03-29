@@ -101,7 +101,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
 	if(env.verbose) {
-		printf("%u, %llu, %llu, %lu, %u\n",
+		printf("%u, %llu, %llu, %lu\n",
 		e->status, e->start, e->end, e->hash);
 	}
 	return 0;
