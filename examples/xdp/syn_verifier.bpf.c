@@ -102,7 +102,7 @@ static unsigned long do_syn_verifier(struct iphdr* iph, struct tcphdr* tcph) {
 }
 
 SEC("xdp")
-int syn_verifier(struct xdp_md *ctx) {
+int xdp_pass(struct xdp_md *ctx) {
 	struct event *e;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e) {
