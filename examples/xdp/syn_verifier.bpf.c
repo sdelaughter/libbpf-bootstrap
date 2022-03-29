@@ -133,18 +133,17 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							unsigned long hash = check_syn_hash(iph, tcph);
 							e->hash = hash;
-							valid = hash >= POW_THRESHOLD;
-							e->status = !valid;
-							#if DROP_INVALID > 0
-								if(!valid) {
-									e->end_ts = bpf_ktime_get_ns();
-									bpf_ringbuf_submit(e, 0);
-									return XDP_DROP;
-								}
-							#endif
-							e->end_ts = bpf_ktime_get_ns();
-							bpf_ringbuf_submit(e, 0);
-							return XDP_PASS;
+							if (hash < POW_THRESHOLD){
+								e->status = 1;
+								e->end_ts = bpf_ktime_get_ns();
+								bpf_ringbuf_submit(e, 0);
+								return XDP_DROP;
+							} else {
+								e->status = 0;
+								e->end_ts = bpf_ktime_get_ns();
+								bpf_ringbuf_submit(e, 0);
+								return XDP_PASS;
+							}
 						} else {
 							return XDP_PASS;
 						}

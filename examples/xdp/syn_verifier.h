@@ -22,7 +22,7 @@ struct event {
 	unsigned long long start_ts;
 	unsigned long long end_ts;
 	unsigned long hash;
-	unsigned char valid;
+	unsigned char status;
 };
 
 #endif /* __SYN_VERIFIER_H */
