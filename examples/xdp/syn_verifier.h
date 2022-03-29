@@ -4,6 +4,8 @@
 #ifndef __SYN_VERIFIER_H
 #define __SYN_VERIFIER_H
 
+#define DROP_INVALID 1
+
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
 
