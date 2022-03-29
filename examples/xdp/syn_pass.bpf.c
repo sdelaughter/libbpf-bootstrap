@@ -133,7 +133,7 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
 }
 
 SEC("xdp")
-int xdp_pass(struct xdp_md *ctx) {
+int syn_pass(struct xdp_md *ctx) {
 	unsigned long long start_time = bpf_ktime_get_ns();
 
 	void *data = (void *)(long)ctx->data;

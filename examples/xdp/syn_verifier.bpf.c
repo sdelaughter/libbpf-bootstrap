@@ -5,7 +5,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include "syn_verify.h"
+#include "syn_verifier.h"
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
@@ -89,7 +89,7 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph) {
+static unsigned long do_syn_verifier(struct iphdr* iph, struct tcphdr* tcph) {
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
 	digest.daddr = iph->daddr;
@@ -102,7 +102,7 @@ static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph) {
 }
 
 SEC("xdp")
-int xdp_pass(struct xdp_md *ctx) {
+int syn_verifier(struct xdp_md *ctx) {
 	struct event *e;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e) {
@@ -128,7 +128,7 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-							unsigned long hash = do_syn_verify(iph, tcph);
+							unsigned long hash = do_syn_verifier(iph, tcph);
 							unsigned char valid = hash >= POW_THRESHOLD;
 							e->hash = hash;
 							e->valid = valid;

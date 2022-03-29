@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/resource.h>
-#include "syn_verify.h"
-#include "syn_verify.skel.h"
+#include "syn_verifier.h"
+#include "syn_verifier.skel.h"
 #include <bpf/libbpf.h>
 
 unsigned long long start_ts = 0;
@@ -16,14 +16,14 @@ static struct env {
 	long ifindex;
 } env;
 
-const char *argp_program_version = "syn_verify 0.0";
+const char *argp_program_version = "syn_verifier 0.0";
 const char *argp_program_bug_address = "<bpf@vger.kernel.org>";
 const char argp_program_doc[] =
-"BPF syn_verify demo application.\n"
+"BPF syn_verifier demo application.\n"
 "\n"
 "It prints the size of received packets\n"
 "\n"
-"USAGE: ./syn_verify [-i <interface>] [-v]\n";
+"USAGE: ./syn_verifier [-i <interface>] [-v]\n";
 
 static const struct argp_option opts[] = {
 	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
@@ -110,7 +110,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 int main(int argc, char **argv)
 {
 	struct ring_buffer *rb = NULL;
-	struct syn_verify_bpf *skel;
+	struct syn_verifier_bpf *skel;
 	int err;
 
 	/* Parse command line arguments */
@@ -127,23 +127,23 @@ int main(int argc, char **argv)
 	signal(SIGTERM, sig_handler);
 
 	/* Load and verify BPF application */
-	skel = syn_verify_bpf__open();
+	skel = syn_verifier_bpf__open();
 	if (!skel) {
 		fprintf(stderr, "Failed to open and load BPF skeleton\n");
 		return 1;
 	}
 
 	/* Load & verify BPF programs */
-	err = syn_verify_bpf__load(skel);
+	err = syn_verifier_bpf__load(skel);
 	if (err) {
 		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
 		goto cleanup;
 	}
 
-	// syn_verify_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
+	// syn_verifier_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
 	/* Attach tracepoints */
-	// err = syn_verify_bpf__attach(skel);
+	// err = syn_verifier_bpf__attach(skel);
 	// if (err) {
 	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
 	// 	goto cleanup;
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 		printf("%s, %s, %s, %s\n",
 		"start", "end", "hash", "status");
 	}
-	
+
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
@@ -185,8 +185,8 @@ int main(int argc, char **argv)
 	cleanup:
 	/* Clean up */
 	ring_buffer__free(rb);
-	syn_verify_bpf__detach(skel);
-	syn_verify_bpf__destroy(skel);
+	syn_verifier_bpf__detach(skel);
+	syn_verifier_bpf__destroy(skel);
 
 	return err < 0 ? -err : 0;
 }
