@@ -8,7 +8,7 @@ const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
 
 struct event {
-	unsigned char status
+	unsigned char status;
 	unsigned long long start;
 	unsigned long long end;
 };
