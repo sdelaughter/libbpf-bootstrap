@@ -5,7 +5,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include "syn_prover.h"
+#include "syn_verifier.h"
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
