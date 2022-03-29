@@ -60,21 +60,21 @@ static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int if
 static error_t parse_arg(int key, char *arg, struct argp_state *state) {
 	switch (key) {
 		case 'v':
-		env.verbose = true;
-		break;
+			env.verbose = true;
+			break;
 		case 'i':
-		errno = 0;
-		env.ifindex = strtol(arg, NULL, 10);
-		if (errno || env.ifindex < 1) {
-			fprintf(stderr, "Invalid interface: %s\n", arg);
-			argp_usage(state);
-		}
-		break;
+			errno = 0;
+			env.ifindex = strtol(arg, NULL, 10);
+			if (errno || env.ifindex < 1) {
+				fprintf(stderr, "Invalid interface: %s\n", arg);
+				argp_usage(state);
+			}
+			break;
 		case ARGP_KEY_ARG:
-		argp_usage(state);
-		break;
+			argp_usage(state);
+			break;
 		default:
-		return ARGP_ERR_UNKNOWN;
+			return ARGP_ERR_UNKNOWN;
 	}
 	return 0;
 }
@@ -164,8 +164,11 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%s, %s, %s, %s\n",
-	"start", "end", "hash", "status");
+	if(env.verbose){
+		printf("%s, %s, %s, %s\n",
+		"start", "end", "hash", "status");
+	}
+	
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
