@@ -166,12 +166,12 @@ int xdp_pass(struct xdp_md *ctx) {
 								bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
 								return XDP_PASS;
 							}
-							e->start_ts = start_time;
+							e->start = start_time;
 
 							do_syn_pow(iph, tcph, e);
 							update_tcp_csum(tcph, 0);
 
-							e->end_ts = bpf_ktime_get_ns();
+							e->end = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
 						} else {
 							// bpf_ringbuf_discard(e, 0);
