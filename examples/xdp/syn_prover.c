@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	if (env.verbose) {
-		printf("%s, %s, %s, %s, %s, %s\n",
+		printf("%s, %s, %s, %s, %s\n",
 		"status", "start", "end", "hash", "iters");
 	}
 	while (!exiting) {
