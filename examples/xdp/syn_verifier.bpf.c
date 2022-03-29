@@ -129,18 +129,18 @@ int xdp_pass(struct xdp_md *ctx) {
 								bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
 								return XDP_PASS;
 							}
-							e->start_ts = start_time;
+							e->start = start_time;
 
 							unsigned long hash = check_syn_hash(iph, tcph);
 							e->hash = hash;
 							if (hash < POW_THRESHOLD){
 								e->status = 1;
-								e->end_ts = bpf_ktime_get_ns();
+								e->end = bpf_ktime_get_ns();
 								bpf_ringbuf_submit(e, 0);
 								return XDP_DROP;
 							} else {
 								e->status = 0;
-								e->end_ts = bpf_ktime_get_ns();
+								e->end = bpf_ktime_get_ns();
 								bpf_ringbuf_submit(e, 0);
 								return XDP_PASS;
 							}

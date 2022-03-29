@@ -119,9 +119,13 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) 
 			}
 		}
 		tcph->ack_seq = bpf_htons(best_nonce);
-		e->best_nonce = best_nonce;
-		e->best_hash = best_hash;
-		e->hash_iters = hash_iters;
+		e->hash = best_hash;
+		e->iters = hash_iters;
+		if (best_hash > POW_THRESHOLD) {
+			e->status = 0;
+		} else {
+			e->status = 1;
+		}
 	}
 }
 

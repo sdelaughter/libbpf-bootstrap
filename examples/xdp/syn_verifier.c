@@ -101,8 +101,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
 	if(env.verbose) {
-		printf("%llu, %llu, %lu, %u\n",
-		e->start_ts, e->end_ts, e->hash, e->status);
+		printf("%u, %llu, %llu, %lu, %u\n",
+		e->status, e->start_ts, e->end_ts, e->hash);
 	}
 	return 0;
 }
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 	/* Process events */
 	if(env.verbose){
 		printf("%s, %s, %s, %s\n",
-		"start", "end", "hash", "status");
+		"status", "start", "end", "hash");
 	}
 
 	while (!exiting) {

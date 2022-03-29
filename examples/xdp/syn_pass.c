@@ -101,8 +101,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
 	if (env.verbose) {
-		printf("%llu, %llu\n",
-		e->start_ts, e->end_ts);
+		printf("%u, %llu, %llu\n",
+		e->status, e->start_ts, e->end_ts);
 	}
 	return 0;
 }
@@ -165,8 +165,8 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	if (env.verbose) {
-		printf("%s, %s\n",
-		"start", "end");
+		printf("%s, %s, %s\n",
+		"status", "start", "end");
 	}
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);

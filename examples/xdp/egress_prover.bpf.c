@@ -101,7 +101,7 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	digest.seq = tcph->seq;
 
 	#pragma unroll
-	for (int i=0; i<POW_ITERS; i++) {
+	for (int i=0; i<MAX_ITERS; i++) {
 		// e->hash_iters = i+1;
 		// digest.ack_seq = nonce + i;
 		// hash = syn_hash(&digest);
@@ -123,8 +123,8 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e){
 	}
 }
 
-SEC("xdp")
-int xdp_pass(struct xdp_md *ctx) {
+SEC("tp/net/net_dev_start_xmit")
+int xdp_pass(struct sk_buff *skb) {
 	struct event *e;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e) {
@@ -133,48 +133,50 @@ int xdp_pass(struct xdp_md *ctx) {
 
 	e->start_ts = bpf_ktime_get_ns();
 
-	void *data = (void *)(long)ctx->data;
-	void *data_end = (void *)(long)ctx->data_end;
-	int packet_size = data_end - data;
 
-	// Parse Ethernet Header
-	struct ethhdr *ethh = data;
-	if ((void *)ethh + sizeof(*ethh) <= data_end) {
-		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
-			// Parse IPv4 Header
-			struct iphdr *iph = data + sizeof(*ethh);
-			if ((void *)iph + sizeof(*iph) <= data_end) {
-				if (iph->protocol == IPPROTO_TCP) {
-					// Parse TCP Header
-					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
-					if ((void *)tcph + sizeof(*tcph) <= data_end) {
-						if(is_syn(tcph)){
-							// It's a SYN! Compute the proof of work
-							do_syn_pow(iph, tcph, e);
-						} else {
-							bpf_ringbuf_discard(e, 0);
-							return XDP_PASS;
-						}
-					} else {
-						bpf_ringbuf_discard(e, 0);
-						return XDP_PASS;
-					}
-				} else {
-					bpf_ringbuf_discard(e, 0);
-					return XDP_PASS;
-				}
-			} else {
-				bpf_ringbuf_discard(e, 0);
-				return XDP_PASS;
-			}
-		} else {
-			bpf_ringbuf_discard(e, 0);
-			return XDP_PASS;
-		}
-	} else {
-		bpf_ringbuf_discard(e, 0);
-		return XDP_PASS;
-	}
+
+	// void *data = (void *)(long)ctx->data;
+	// void *data_end = (void *)(long)ctx->data_end;
+	// int packet_size = data_end - data;
+	//
+	// // Parse Ethernet Header
+	// struct ethhdr *ethh = data;
+	// if ((void *)ethh + sizeof(*ethh) <= data_end) {
+	// 	if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+	// 		// Parse IPv4 Header
+	// 		struct iphdr *iph = data + sizeof(*ethh);
+	// 		if ((void *)iph + sizeof(*iph) <= data_end) {
+	// 			if (iph->protocol == IPPROTO_TCP) {
+	// 				// Parse TCP Header
+	// 				struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+	// 				if ((void *)tcph + sizeof(*tcph) <= data_end) {
+	// 					if(is_syn(tcph)){
+	// 						// It's a SYN! Compute the proof of work
+	// 						do_syn_pow(iph, tcph, e);
+	// 					} else {
+	// 						bpf_ringbuf_discard(e, 0);
+	// 						return XDP_PASS;
+	// 					}
+	// 				} else {
+	// 					bpf_ringbuf_discard(e, 0);
+	// 					return XDP_PASS;
+	// 				}
+	// 			} else {
+	// 				bpf_ringbuf_discard(e, 0);
+	// 				return XDP_PASS;
+	// 			}
+	// 		} else {
+	// 			bpf_ringbuf_discard(e, 0);
+	// 			return XDP_PASS;
+	// 		}
+	// 	} else {
+	// 		bpf_ringbuf_discard(e, 0);
+	// 		return XDP_PASS;
+	// 	}
+	// } else {
+	// 	bpf_ringbuf_discard(e, 0);
+	// 	return XDP_PASS;
+	// }
 	e->end_ts = bpf_ktime_get_ns();
 	bpf_ringbuf_submit(e, 0);
 	return XDP_PASS;
