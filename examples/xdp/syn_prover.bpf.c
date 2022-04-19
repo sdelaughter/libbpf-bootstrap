@@ -119,9 +119,13 @@ static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph, struct event* e) 
 			}
 		}
 		tcph->ack_seq = bpf_htons(best_nonce);
-		e->best_nonce = best_nonce;
-		e->best_hash = best_hash;
-		e->hash_iters = hash_iters;
+		e->hash = best_hash;
+		e->iters = hash_iters;
+		if (best_hash > POW_THRESHOLD) {
+			e->status = 0;
+		} else {
+			e->status = 1;
+		}
 	}
 }
 
@@ -162,12 +166,12 @@ int xdp_pass(struct xdp_md *ctx) {
 								bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
 								return XDP_PASS;
 							}
-							e->start_ts = start_time;
+							e->start = start_time;
 
 							do_syn_pow(iph, tcph, e);
 							update_tcp_csum(tcph, 0);
 
-							e->end_ts = bpf_ktime_get_ns();
+							e->end = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
 						} else {
 							// bpf_ringbuf_discard(e, 0);

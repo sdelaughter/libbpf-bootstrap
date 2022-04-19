@@ -107,8 +107,8 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	// unsigned long long duration = (e->end_ts - e->start_ts);
 	//
 	if (env.verbose) {
-		printf("%llu, %llu, %u, %lu, %lu\n",
-		e->start_ts, e->end_ts, e->hash_iters, e->best_nonce, e->best_hash);
+		printf("%u, %llu, %llu, %lu, %u\n",
+		e-> status, e->start, e->end, e->hash, e->iters);
 	}
 	return 0;
 }
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 	/* Process events */
 	if (env.verbose) {
 		printf("%s, %s, %s, %s, %s\n",
-		"start", "end", "iters", "nonce", "hash");
+		"status", "start", "end", "hash", "iters");
 	}
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);

@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
 /* Copyright (c) 2020 Facebook */
 
-#ifndef __SYN_VERIFY_H
-#define __SYN_VERIFY_H
+#ifndef __SYN_VERIFIER_H
+#define __SYN_VERIFIER_H
+
+#define DROP_INVALID 1
 
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
@@ -17,10 +19,10 @@ const unsigned long POW_THRESHOLD  = 3221225472; // k=4
 
 
 struct event {
-	unsigned long long start_ts;
-	unsigned long long end_ts;
+	unsigned char status;
+	unsigned long long start;
+	unsigned long long end;
 	unsigned long hash;
-	unsigned char valid;
 };
 
-#endif /* __SYN_VERIFY_H */
+#endif /* __SYN_VERIFIER_H */

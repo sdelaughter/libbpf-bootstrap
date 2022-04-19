@@ -5,7 +5,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include "syn_verify.h"
+#include "syn_verifier.h"
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
@@ -29,7 +29,6 @@ struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 256 * 1024);
 } rb SEC(".maps");
-
 
 #if !defined (get16bits)
 #define get16bits(d) ((((unsigned long)(((const unsigned char *)(d))[1])) << 8)\
@@ -89,7 +88,7 @@ static unsigned long syn_hash(struct message_digest* digest) {
 	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
 }
 
-static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph) {
+static unsigned long check_syn_hash(struct iphdr* iph, struct tcphdr* tcph) {
 	struct message_digest digest;
 	digest.saddr = iph->saddr;
 	digest.daddr = iph->daddr;
@@ -98,18 +97,14 @@ static unsigned long do_syn_verify(struct iphdr* iph, struct tcphdr* tcph) {
 	digest.seq = tcph->seq;
 	digest.ack_seq = bpf_ntohs(tcph->ack_seq);
 
-	return syn_hash(&digest);
+	unsigned long hash = syn_hash(&digest);
+	return hash;
 }
+
 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
-	struct event *e;
-	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	if (!e) {
-		return XDP_PASS;
-	}
-
-	e->start_ts = bpf_ktime_get_ns();
+	unsigned long long start_time = bpf_ktime_get_ns();
 
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
@@ -128,41 +123,44 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if(is_syn(tcph)){
 							// It's a SYN! Compute the proof of work
-							unsigned long hash = do_syn_verify(iph, tcph);
-							unsigned char valid = hash >= POW_THRESHOLD;
-							e->hash = hash;
-							e->valid = valid;
-							e->end_ts = bpf_ktime_get_ns();
-							bpf_ringbuf_submit(e, 0);
-							if(valid) {
+							struct event *e;
+							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+							if (!e) {
+								bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
 								return XDP_PASS;
-							} else{
+							}
+							e->start = start_time;
+
+							unsigned long hash = check_syn_hash(iph, tcph);
+							e->hash = hash;
+							if (hash < POW_THRESHOLD){
+								e->status = 1;
+								e->end = bpf_ktime_get_ns();
+								bpf_ringbuf_submit(e, 0);
 								return XDP_DROP;
+							} else {
+								e->status = 0;
+								e->end = bpf_ktime_get_ns();
+								bpf_ringbuf_submit(e, 0);
+								return XDP_PASS;
 							}
 						} else {
-							bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
 						}
 					} else {
-						bpf_ringbuf_discard(e, 0);
 						return XDP_PASS;
 					}
 				} else {
-					bpf_ringbuf_discard(e, 0);
 					return XDP_PASS;
 				}
 			} else {
-				bpf_ringbuf_discard(e, 0);
 				return XDP_PASS;
 			}
 		} else {
-			bpf_ringbuf_discard(e, 0);
 			return XDP_PASS;
 		}
 	} else {
-		bpf_ringbuf_discard(e, 0);
 		return XDP_PASS;
 	}
-	bpf_ringbuf_discard(e, 0);
 	return XDP_PASS;
 }

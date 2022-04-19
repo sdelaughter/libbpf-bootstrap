@@ -35,101 +35,8 @@ struct {
                        +(unsigned long)(((const unsigned char *)(d))[0]) )
 #endif
 
-static unsigned long SuperFastHash (const char* data, int len) {
-	uint32_t hash = len, tmp;
-	int rem;
-
-  if (len <= 0 || data == NULL) return 0;
-
-  rem = len & 3;
-  len >>= 2;
-
-  /* Main loop */
-  for (;len > 0; len--) {
-	  hash  += get16bits (data);
-	  tmp    = (get16bits (data+2) << 11) ^ hash;
-	  hash   = (hash << 16) ^ tmp;
-	  data  += 2*sizeof (uint16_t);
-	  hash  += hash >> 11;
-  }
-
-  /* Handle end cases */
-  switch (rem) {
-    case 3: hash += get16bits (data);
-            hash ^= hash << 16;
-            hash ^= ((signed char)data[sizeof (uint16_t)]) << 18;
-            hash += hash >> 11;
-            break;
-    case 2: hash += get16bits (data);
-            hash ^= hash << 11;
-            hash += hash >> 17;
-            break;
-    case 1: hash += (signed char)*data;
-            hash ^= hash << 10;
-            hash += hash >> 1;
-  }
-
-  /* Force "avalanching" of final 127 bits */
-  hash ^= hash << 3;
-  hash += hash >> 5;
-  hash ^= hash << 4;
-  hash += hash >> 17;
-  hash ^= hash << 25;
-  hash += hash >> 6;
-
-  return hash;
-}
-
 static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
-}
-
-static unsigned long syn_hash(struct message_digest* digest) {
-	return SuperFastHash((const char *)digest, sizeof(struct message_digest));
-}
-
-static void do_syn_pow(struct iphdr* iph, struct tcphdr* tcph){//}, struct event* e){
-	// unsigned long nonce = bpf_get_prandom_u32();
-	unsigned long nonce = 0;
-	// unsigned long nonce = (unsigned long)(e->start_ts & 0xffffffff);
-	unsigned long best_nonce = nonce;
-	unsigned long hash = 0;
-	unsigned long best_hash = 0;
-
-	struct message_digest digest;
-	digest.saddr = iph->saddr;
-	digest.daddr = iph->daddr;
-	digest.sport = tcph->source;
-	digest.dport = tcph->dest;
-	digest.seq = tcph->seq;
-
-	#pragma unroll
-	for (unsigned int i=0; i<MAX_ITERS; i++) {
-		// e->hash_iters = i+1;
-		digest.ack_seq = nonce + i;
-		hash = syn_hash(&digest);
-
-		if (hash > best_hash) {
-			best_nonce = nonce + i;
-			best_hash = hash;
-			if (best_hash >= POW_THRESHOLD) {
-				break;
-			}
-		}
-	}
-	tcph->ack_seq = best_nonce;
-	// e->best_hash = best_hash;
-	// e->best_nonce = best_nonce;
-}
-
-static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
-  if (old_ack_seq == tcph->ack_seq){
-    return;
-  }
-  __sum16 sum = old_ack_seq + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
-  sum += bpf_ntohs(tcph->check);
-  sum = (sum & 0xffff) + (sum>>16);
-  tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
 
 SEC("xdp")
@@ -159,34 +66,28 @@ int xdp_pass(struct xdp_md *ctx) {
 								return XDP_PASS;
 							}
 
-							e->start_ts = start_time;
-							e->end_ts = bpf_ktime_get_ns();
+							e->status = 0;
+							e->start = start_time;
+							e->end = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
-							// do_syn_pow(iph, tcph);//, e);
-							// update_tcp_csum(tcph, 0);
 							return XDP_PASS;
+							
 						} else {
-							// bpf_ringbuf_discard(e, 0);
 							return XDP_PASS;
 						}
 					} else {
-						// bpf_ringbuf_discard(e, 0);
 						return XDP_PASS;
 					}
 				} else {
-					// bpf_ringbuf_discard(e, 0);
 					return XDP_PASS;
 				}
 			} else {
-				// bpf_ringbuf_discard(e, 0);
 				return XDP_PASS;
 			}
 		} else {
-			// bpf_ringbuf_discard(e, 0);
 			return XDP_PASS;
 		}
 	} else {
-		// bpf_ringbuf_discard(e, 0);
 		return XDP_PASS;
 	}
 	return XDP_PASS;

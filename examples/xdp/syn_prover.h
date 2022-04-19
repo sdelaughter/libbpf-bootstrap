@@ -22,11 +22,11 @@ const unsigned long POW_THRESHOLD  = 3221225472; // k=4
 const unsigned short MAX_ITERS = 150;
 
 struct event {
-	unsigned long long start_ts;
-	unsigned long long end_ts;
-	unsigned long best_nonce;
-	unsigned long best_hash;
-	unsigned short hash_iters;
+	unsigned char status;
+	unsigned long long start;
+	unsigned long long end;
+	unsigned long hash;
+	unsigned short iters;
 };
 
 #endif /* __SYN_PROVER_H */
