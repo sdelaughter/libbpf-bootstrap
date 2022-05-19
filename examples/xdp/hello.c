@@ -1,5 +1,5 @@
 #include <linux/bpf.h>
-#include "bpf_helpers.h"
+#include <bpf/libbpf.h>
 
 #ifdef HELLO_XDP
   #define RET XDP_PASS
