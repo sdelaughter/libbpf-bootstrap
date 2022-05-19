@@ -31,7 +31,7 @@ static const struct argp_option opts[] = {
 	{},
 };
 
-static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int ifindex) {
+static int bpf_object__attach_skeleton_net(struct bpf_object_skeleton *s, int ifindex) {
 	int i, err;
 
 	for (i = 0; i < s->prog_cnt; i++) {
@@ -45,7 +45,7 @@ static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int if
 		// if (!prog->sec_def || !prog->sec_def->attach_fn)
 		// 	continue;
 
-		*link = bpf_program__attach_xdp(prog, ifindex);
+		*link = bpf_program__attach(prog);//, ifindex);
 		err = libbpf_get_error(*link);
 		if (err) {
 			// pr_warn("failed to auto-attach program '%s': %d\n",
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 	/* Process events */
 	if (env.verbose) {
 		printf("%s, %s, %s\n",
-		"size", "start", "end");
+		"status", "start", "end");
 	}
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
