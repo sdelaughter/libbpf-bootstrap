@@ -31,7 +31,7 @@ int hello(struct sk_buff *skb) {
 	e->start = start_time;
 
 	void *data = (void *)(long)skb->data;
-	void *data_end = (void *)(long)skb->data_end;
+	void *data_end = (void *)(long)skb->end;
 	int packet_size = data_end - data;
 
 	e->size = packet_size;
