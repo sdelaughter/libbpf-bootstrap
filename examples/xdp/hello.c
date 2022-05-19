@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
 	// 	goto cleanup;
 	// }
-	err = bpf_object__attach_skeleton_xdp(skel->skeleton, env.ifindex);
+	err = bpf_object__attach_skeleton_net(skel->skeleton, env.ifindex);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
