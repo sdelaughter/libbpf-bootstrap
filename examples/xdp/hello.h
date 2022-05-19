@@ -5,9 +5,9 @@
 #define __HELLO_H
 
 struct event {
-	unsigned char status;
 	unsigned long long start;
 	unsigned long long end;
+	int size;
 };
 
 #endif /* __HELLO_H */

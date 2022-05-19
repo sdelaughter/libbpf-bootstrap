@@ -22,11 +22,21 @@ SEC("tp/net/net_dev_queue")
 int hello(struct sk_buff *skb) {
 	unsigned long long start_time = bpf_ktime_get_ns();
 
+	struct event *e;
+	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+	if (!e) {
+		bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
+		return XDP_PASS;
+	}
+	e->start = start_time;
+
 	void *data = (void *)(long)skb->data;
 	void *data_end = (void *)(long)skb->data_end;
 	int packet_size = data_end - data;
 
-	bpf_trace_printk(packet_size);
+	e->size = packet_size;
+	e->end = bpf_ktime_get_ns();
+	bpf_ringbuf_submit(e, 0);
 
 	return XDP_PASS;
 }

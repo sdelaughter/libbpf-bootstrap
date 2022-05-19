@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/resource.h>
-#include "syn_padding.h"
-#include "syn_padding.skel.h"
+#include "hello.h"
+#include "hello.skel.h"
 #include <bpf/libbpf.h>
 
 unsigned long long start_ts = 0;
@@ -16,14 +16,14 @@ static struct env {
 	long ifindex;
 } env;
 
-const char *argp_program_version = "syn_padding 0.0";
+const char *argp_program_version = "hello 0.0";
 const char *argp_program_bug_address = "<bpf@vger.kernel.org>";
 const char argp_program_doc[] =
-"BPF syn_padding demo application.\n"
+"BPF hello demo application.\n"
 "\n"
 "It prints the size of received packets\n"
 "\n"
-"USAGE: ./syn_padding [-i <interface>] [-v]\n";
+"USAGE: ./hello [-i <interface>] [-v]\n";
 
 static const struct argp_option opts[] = {
 	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
@@ -108,7 +108,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	//
 	if (env.verbose) {
 		printf("%u, %llu, %llu\n",
-		e-> status, e->start, e->end);
+		e->size, e->start, e->end);
 	}
 	return 0;
 }
@@ -116,7 +116,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 int main(int argc, char **argv)
 {
 	struct ring_buffer *rb = NULL;
-	struct syn_padding_bpf *skel;
+	struct hello_bpf *skel;
 	int err;
 
 	/* Parse command line arguments */
@@ -133,23 +133,23 @@ int main(int argc, char **argv)
 	signal(SIGTERM, sig_handler);
 
 	/* Load and verify BPF application */
-	skel = syn_padding_bpf__open();
+	skel = hello_bpf__open();
 	if (!skel) {
 		fprintf(stderr, "Failed to open and load BPF skeleton\n");
 		return 1;
 	}
 
 	/* Load & verify BPF programs */
-	err = syn_padding_bpf__load(skel);
+	err = hello_bpf__load(skel);
 	if (err) {
 		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
 		goto cleanup;
 	}
 
-	// syn_padding_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
+	// hello_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
 	/* Attach tracepoints */
-	// err = syn_padding_bpf__attach(skel);
+	// err = hello_bpf__attach(skel);
 	// if (err) {
 	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
 	// 	goto cleanup;
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 	/* Process events */
 	if (env.verbose) {
 		printf("%s, %s, %s\n",
-		"status", "start", "end");
+		"size", "start", "end");
 	}
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
@@ -190,8 +190,8 @@ int main(int argc, char **argv)
 	cleanup:
 	/* Clean up */
 	ring_buffer__free(rb);
-	syn_padding_bpf__detach(skel);
-	syn_padding_bpf__destroy(skel);
+	hello_bpf__detach(skel);
+	hello_bpf__destroy(skel);
 
 	return err < 0 ? -err : 0;
 }
