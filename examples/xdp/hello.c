@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 	// hello_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
 	/* Attach tracepoints */
-	err = hello_bpf__attach(skel);
+	err = hello_bpf__attach_tracepoint(skel, "net", "net_dev_queue");
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
