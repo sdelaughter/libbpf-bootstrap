@@ -149,16 +149,16 @@ int main(int argc, char **argv)
 	// hello_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
 	/* Attach tracepoints */
-	// err = hello_bpf__attach(skel);
-	// if (err) {
-	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
-	// 	goto cleanup;
-	// }
-	err = bpf_object__attach_skeleton_net(skel->skeleton, env.ifindex);
+	err = hello_bpf__attach(skel);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
 	}
+	// err = bpf_object__attach_skeleton_net(skel->skeleton, env.ifindex);
+	// if (err) {
+	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
+	// 	goto cleanup;
+	// }
 
 
 	/* Set up ring buffer polling */
