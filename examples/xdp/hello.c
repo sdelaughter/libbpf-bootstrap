@@ -31,7 +31,7 @@ static const struct argp_option opts[] = {
 	{},
 };
 
-static int bpf_object__attach_skeleton_net(struct bpf_object_skeleton *s, int ifindex) {
+static int bpf_object__attach_skeleton_net(struct bpf_object_skeleton *s) {
 	int i, err;
 
 	for (i = 0; i < s->prog_cnt; i++) {
@@ -45,7 +45,7 @@ static int bpf_object__attach_skeleton_net(struct bpf_object_skeleton *s, int if
 		// if (!prog->sec_def || !prog->sec_def->attach_fn)
 		// 	continue;
 
-		*link = bpf_program__attach(prog);//, ifindex);
+		*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_queue");//, ifindex);
 		err = libbpf_get_error(*link);
 		if (err) {
 			// pr_warn("failed to auto-attach program '%s': %d\n",
@@ -148,17 +148,17 @@ int main(int argc, char **argv)
 
 	// hello_bpf__set_type(skel, BPF_PROG_TYPE_XDP);
 
-	/* Attach tracepoints */
-	err = hello_bpf__attach_tracepoint(skel, "net", "net_dev_queue");
-	if (err) {
-		fprintf(stderr, "Failed to attach BPF skeleton\n");
-		goto cleanup;
-	}
-	// err = bpf_object__attach_skeleton_net(skel->skeleton, env.ifindex);
+	// /* Attach tracepoints */
+	// err = hello_bpf__attach(skel);
 	// if (err) {
 	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
 	// 	goto cleanup;
 	// }
+	err = bpf_object__attach_skeleton_net(skel->skeleton);
+	if (err) {
+		fprintf(stderr, "Failed to attach BPF skeleton\n");
+		goto cleanup;
+	}
 
 
 	/* Set up ring buffer polling */
