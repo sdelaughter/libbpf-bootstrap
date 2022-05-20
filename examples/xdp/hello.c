@@ -115,7 +115,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 }
 
 int main(int argc, char **argv) {
-	strut rlimit r = {RLIM_INFINITY, RLIM_INFINITY};
+	struct rlimit r = {RLIM_INFINITY, RLIM_INFINITY};
 	if(setrlimit(RLIMIT_MEMLOCK, &r)) {
 		perror("setrlimit(RLIMIT_MEMLOCK)");
 		return 1;
