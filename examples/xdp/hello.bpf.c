@@ -18,7 +18,7 @@ static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-SEC("tp/net/net_dev_xmit")
+SEC("tp/net/net_dev_start_xmit")
 int hello(struct sk_buff *skb) {
 	unsigned long long start_time = bpf_ktime_get_ns();
 
