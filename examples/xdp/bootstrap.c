@@ -76,7 +76,7 @@ static void sig_handler(int sig)
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
 	const struct event *e = data;
-	printf("%ull", e->ts)
+	printf("%ull", e->ts);
 	return 0;
 }
 
