@@ -20,7 +20,7 @@ struct {
 	__uint(max_entries, 256 * 1024);
 } rb SEC(".maps");
 
-const volatile unsigned long long min_duration_ns = 0;
+// const volatile unsigned long long min_duration_ns = 0;
 
 SEC("tp/net/net_dev_start_xmit")
 int hello(const struct sk_buff *skb, const struct net_device *dev) {
@@ -32,6 +32,7 @@ int hello(const struct sk_buff *skb, const struct net_device *dev) {
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
+	e->ts=ts;
 
 	/* successfully submit it to user-space for post-processing */
 	bpf_ringbuf_submit(e, 0);
