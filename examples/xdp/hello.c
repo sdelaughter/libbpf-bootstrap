@@ -114,8 +114,13 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	return 0;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
+	struct rlimit r = {RLIM_INFINITY, RLIM_INFINITY};
+	if(setrlimit(RLIMIT_MEMLOCK, &r)) {
+		perror("setrlimit(RLIMIT_MEMLOCK)");
+		return 1;
+	}
+
 	struct ring_buffer *rb = NULL;
 	struct hello_bpf *skel;
 	int err;
