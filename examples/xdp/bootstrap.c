@@ -22,11 +22,10 @@ const char argp_program_doc[] =
 "It traces process start and exits and shows associated \n"
 "information (filename, process duration, PID and PPID, etc).\n"
 "\n"
-"USAGE: ./bootstrap [-d <min-duration-ms>] [-v]\n";
+"USAGE: [-v]\n";
 
 static const struct argp_option opts[] = {
 	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
-	// { "duration", 'd', "DURATION-MS", 0, "Minimum process duration (ms) to report" },
 	{},
 };
 
@@ -36,14 +35,6 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 	case 'v':
 		env.verbose = true;
 		break;
-	// case 'd':
-	// 	errno = 0;
-	// 	env.min_duration_ms = strtol(arg, NULL, 10);
-	// 	if (errno || env.min_duration_ms <= 0) {
-	// 		fprintf(stderr, "Invalid duration: %s\n", arg);
-	// 		argp_usage(state);
-	// 	}
-	// 	break;
 	case ARGP_KEY_ARG:
 		argp_usage(state);
 		break;
@@ -117,7 +108,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Attach tracepoints */
-	err = bootstrap_bpf__attach(skel);
+	err = bootstrap_bpf__attach_tracepoint(skel, "net", "net_dev_start_xmit");
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
