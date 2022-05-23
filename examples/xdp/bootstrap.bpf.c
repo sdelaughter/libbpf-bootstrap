@@ -8,12 +8,12 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
-struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, 8192);
-	__type(key, pid_t);
-	__type(value, u64);
-} exec_start SEC(".maps");
+// struct {
+// 	__uint(type, BPF_MAP_TYPE_HASH);
+// 	__uint(max_entries, 8192);
+// 	__type(key, pid_t);
+// 	__type(value, u64);
+// } exec_start SEC(".maps");
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -27,7 +27,7 @@ int hello(const struct sk_buff *skb, const struct net_device *dev) {
 {
 	struct event *e;
 	u64 ts = bpf_ktime_get_ns();
-	bpf_map_update_elem(&exec_start, &pid, &ts, BPF_ANY);
+	// bpf_map_update_elem(&exec_start, &pid, &ts, BPF_ANY);
 
 	/* reserve sample from BPF ringbuf */
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
