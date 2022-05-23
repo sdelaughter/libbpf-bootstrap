@@ -4,7 +4,9 @@
 #define __BOOTSTRAP_H
 
 struct event {
-	unsigned long long ts;
+	unsigned long long start;
+	unsigned long long end;
+	int size;
 };
 
 #endif /* __BOOTSTRAP_H */

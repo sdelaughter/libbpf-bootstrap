@@ -25,16 +25,26 @@ struct {
 SEC("tp/net/net_dev_start_xmit")
 int hello(const struct sk_buff *skb, const struct net_device *dev) {
 	struct event *e;
-	unsigned long long ts = bpf_ktime_get_ns();
-	// bpf_map_update_elem(&exec_start, &pid, &ts, BPF_ANY);
+	unsigned long long start_ts;
+	unsigned long long end_ts;
+	unsigned int pkt_size;
+
+	start_ts = bpf_ktime_get_ns();
 
 	/* reserve sample from BPF ringbuf */
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
-	e->ts=ts;
 
-	/* successfully submit it to user-space for post-processing */
+	unsigned long long end_ts = bpf_ktime_get_ns();
+
+	void *data = (void *)(long)skb->data;
+	void *data_end = (void *)(long)skb->end;
+	pkt_size = data_end - data;
+
+	e->size = pkt_size;
+	e->start = start_ts;
+	e->end = end_ts;
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }

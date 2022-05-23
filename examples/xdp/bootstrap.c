@@ -67,7 +67,7 @@ static void sig_handler(int sig)
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
 	const struct event *e = data;
-	printf("%llu", e->ts);
+	printf("%llu, %llu, %u\n", e->start, e->end, e->size);
 	return 0;
 }
 
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%s", "TIME");
+	printf("%s, %s, %s\n", "start", "end", "size");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
