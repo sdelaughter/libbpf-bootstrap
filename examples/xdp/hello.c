@@ -45,8 +45,8 @@ static int bpf_object__attach_skeleton_net(struct bpf_object_skeleton *s) {
 		// if (!prog->sec_def || !prog->sec_def->attach_fn)
 		// 	continue;
 
-		// *link = bpf_program__attach_tracepoint(prog, "net", "net_dev_xmit");
-		*link = bpf_program__attach(prog);
+		*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_start_xmit");
+		// *link = bpf_program__attach(prog);
 		err = libbpf_get_error(*link);
 		if (err) {
 			// pr_warn("failed to auto-attach program '%s': %d\n",
