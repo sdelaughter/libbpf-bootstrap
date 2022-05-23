@@ -24,7 +24,6 @@ const volatile unsigned long long min_duration_ns = 0;
 
 SEC("tp/net/net_dev_start_xmit")
 int hello(const struct sk_buff *skb, const struct net_device *dev) {
-{
 	struct event *e;
 	u64 ts = bpf_ktime_get_ns();
 	// bpf_map_update_elem(&exec_start, &pid, &ts, BPF_ANY);
