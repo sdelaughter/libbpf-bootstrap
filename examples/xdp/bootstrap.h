@@ -7,7 +7,7 @@
 #define MAX_FILENAME_LEN 127
 
 struct event {
-	u64 ts;
+	unsigned long long ts;
 };
 
 #endif /* __BOOTSTRAP_H */
