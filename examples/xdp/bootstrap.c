@@ -108,10 +108,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Attach tracepoints */
-	struct bpf_program *prog = **skel->progs[0].prog;
-	struct bpf_link **link = *skel->progs[0].link;
-	*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_start_xmit");
-	// err = bootstrap_bpf__attach_tracepoint(skel, "net", "net_dev_start_xmit");
+	err = bootstrap_bpf__attach(skel);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
