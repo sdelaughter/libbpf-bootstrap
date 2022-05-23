@@ -18,8 +18,8 @@ static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-SEC("tp/net/net_dev_xmit")
-int hello(struct sk_buff *skb) {
+SEC("tp/net/net_dev_start_xmit")
+int hello(const struct sk_buff *skb, const struct net_device *dev) {
 	unsigned long long start_time = bpf_ktime_get_ns();
 
 	struct event *e;
