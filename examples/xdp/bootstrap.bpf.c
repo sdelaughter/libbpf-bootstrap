@@ -37,24 +37,24 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 
 	struct ethhdr *ethh = data;
 	if ((void *)ethh + sizeof(*ethh) <= data_end) {
-		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
-			// Parse IPv4 Header
-			struct iphdr *iph = data + sizeof(*ethh);
-			if ((void *)iph + sizeof(*iph) <= data_end) {
-				if (iph->protocol == IPPROTO_TCP) {
-					// Parse TCP Header
-					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
-					if ((void *)tcph + sizeof(*tcph) <= data_end) {
-						if(is_syn(tcph)){
-							/* reserve sample from BPF ringbuf */
-							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-							if (!e) return 0;
-							e->size = skb->truesize;
-						}
-					}
-				}
-			}
-		}
+		// if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+		// 	// Parse IPv4 Header
+		// 	struct iphdr *iph = data + sizeof(*ethh);
+		// 	if ((void *)iph + sizeof(*iph) <= data_end) {
+		// 		if (iph->protocol == IPPROTO_TCP) {
+		// 			// Parse TCP Header
+		// 			struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+		// 			if ((void *)tcph + sizeof(*tcph) <= data_end) {
+		// 				if(is_syn(tcph)){
+		// 					/* reserve sample from BPF ringbuf */
+		// 					e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+		// 					if (!e) return 0;
+		e->size = skb->truesize;
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 	// void *data = (void *)(long)skb->data;
