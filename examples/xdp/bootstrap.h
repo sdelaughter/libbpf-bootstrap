@@ -10,6 +10,7 @@ struct event {
 	unsigned long long start;
 	unsigned long long end;
 	unsigned int size;
+	unsigned char protocol
 };
 
 #endif /* __BOOTSTRAP_H */
