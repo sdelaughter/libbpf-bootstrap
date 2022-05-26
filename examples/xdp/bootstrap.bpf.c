@@ -26,8 +26,7 @@ struct {
 SEC("tp/net/net_dev_queue")
 int bootstrap(struct sk_buff *skb) {
 	void *data = (void *)(unsigned long long)skb->data;
-	void *data_end = data + (unsigned long long)skb->end;
-
+	void *data_end = (void *)(unsigned long long)skb->end;
 
 	struct ethhdr *ethh = data;
 	if ((void *)ethh + sizeof(*ethh) < data_end) {
