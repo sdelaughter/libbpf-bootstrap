@@ -23,18 +23,18 @@ struct {
 
 // const volatile unsigned long long min_duration_ns = 0;
 
-SEC("tp/net/netif_receive_skb")
+SEC("tp/net/net_dev_queue")
 int bootstrap(struct sk_buff *skb) {
 	void *data = (void *)(unsigned long long)skb->data;
-	void *data_end = data + (unsigned int)skb->len;
+	void *data_end = data + (unsigned long long)skb->end;
 
 
 	struct ethhdr *ethh = data;
-	if ((void *)ethh + sizeof(*ethh) <= data_end) {
+	if ((void *)ethh + sizeof(*ethh) < data_end) {
 		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
 			// Parse IPv4 Header
 			struct iphdr *iph = data + sizeof(*ethh);
-			if ((void *)iph + sizeof(*iph) <= data_end) {
+			if ((void *)iph + sizeof(*iph) < data_end) {
 				struct event *e;
 				e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 				if (!e) return 0;
