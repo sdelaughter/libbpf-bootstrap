@@ -35,6 +35,14 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e) return 0;
 
+	void *data_end = (void *)(unsigned long long)skb->data_end;
+	void *data = (void *)(unsigned long long)skb->data;
+	struct ethhdr *eth = data;
+
+	if (data + sizeof(struct ethhdr) > data_end)
+		return TC_ACT_SHOT;
+
+
 	// void *data = (void *)(long)skb->data;
 	// void *data_end = (void *)(long)skb->end;
 	// pkt_size = data_end - data;
@@ -43,7 +51,7 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 
 	end_ts = bpf_ktime_get_ns();
 
-	// e->size = skb->truesize;
+	e->size = skb->truesize;
 	e->start = start_ts;
 	e->end = end_ts;
 	bpf_ringbuf_submit(e, 0);
