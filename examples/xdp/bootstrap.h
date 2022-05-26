@@ -6,7 +6,7 @@
 struct event {
 	unsigned long long start;
 	unsigned long long end;
-	int size;
+	unsigned int size;
 };
 
 #endif /* __BOOTSTRAP_H */
