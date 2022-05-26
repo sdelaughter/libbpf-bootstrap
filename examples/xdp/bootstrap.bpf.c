@@ -45,16 +45,16 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 				if (!e) return 0;
 				e->protocol = iph->protocol;
 
-				if (iph->protocol == IPPROTO_TCP) {
-					// Parse TCP Header
-					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
-					if ((void *)tcph + sizeof(*tcph) <= data_end) {
-						if(is_syn(tcph)){
-							/* reserve sample from BPF ringbuf */
-
-						}
-					}
-				}
+				// if (iph->protocol == IPPROTO_TCP) {
+				// 	// Parse TCP Header
+				// 	struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+				// 	if ((void *)tcph + sizeof(*tcph) <= data_end) {
+				// 		if(is_syn(tcph)){
+				// 			/* reserve sample from BPF ringbuf */
+				//
+				// 		}
+				// 	}
+				// }
 			}
 		}
 	}
