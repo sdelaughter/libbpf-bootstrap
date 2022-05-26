@@ -25,8 +25,23 @@ struct {
 
 SEC("tp/net/net_dev_queue")
 int bootstrap(struct sk_buff *skb) {
-	unsigned int truesize = skb->truesize;
-	bpf_trace_printk("%u",truesize);
+	unsigned int truesize;
+	unsigned long long start_ts;
+	unsigned long long end_ts;
+
+	start_ts = bpf_ktime_get_ns();
+
+	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+	if (!e) return 0;
+
+	// bpf_trace_printk("%u",truesize);
+	e->start = start_ts;
+	truesize = skb->truesize;
+	e->packet_size = truesize;
+	end_ts = bpf_ktime_get_ns();
+	e->end = end_ts;
+	bpf_ringbuf_submit(e, 0);
+	return 0;
 	// void *data = (void *)(unsigned long long)skb->data;
 	// void *data_end = (void *)(unsigned long long)skb->data_end;
 	//
@@ -37,17 +52,9 @@ int bootstrap(struct sk_buff *skb) {
 	// 		struct iphdr *iph = data + sizeof(*ethh);
 	// 		if ((void *)iph + sizeof(*iph) < data_end) {
 	// 			struct event *e;
-	// 			e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	// 			if (!e) return 0;
-	// 			unsigned long long start_ts;
-	// 			unsigned long long end_ts;
-	// 			start_ts = bpf_ktime_get_ns();
-	// 			e->protocol = iph->protocol;
-	// 			e->start = start_ts;
-	// 			end_ts = bpf_ktime_get_ns();
-	// 			e->end = end_ts;
-	// 			bpf_ringbuf_submit(e, 0);
-	// 			return 0;
+
+
+
 	//
 	// 			// if (iph->protocol == IPPROTO_TCP) {
 	// 			// 	// Parse TCP Header
