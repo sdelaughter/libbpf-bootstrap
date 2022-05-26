@@ -16,10 +16,10 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
-// struct {
-// 	__uint(type, BPF_MAP_TYPE_RINGBUF);
-// 	__uint(max_entries, 256 * 1024);
-// } rb SEC(".maps");
+struct {
+	__uint(type, BPF_MAP_TYPE_RINGBUF);
+	__uint(max_entries, 256 * 1024);
+} rb SEC(".maps");
 
 // const volatile unsigned long long min_duration_ns = 0;
 
