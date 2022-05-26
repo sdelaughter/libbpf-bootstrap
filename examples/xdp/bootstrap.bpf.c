@@ -16,50 +16,51 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
-struct {
-	__uint(type, BPF_MAP_TYPE_RINGBUF);
-	__uint(max_entries, 256 * 1024);
-} rb SEC(".maps");
+// struct {
+// 	__uint(type, BPF_MAP_TYPE_RINGBUF);
+// 	__uint(max_entries, 256 * 1024);
+// } rb SEC(".maps");
 
 // const volatile unsigned long long min_duration_ns = 0;
 
 SEC("tp/net/net_dev_queue")
-int bootstrap(struct sk_msg_md *skb) {
-	void *data = (void *)(unsigned long long)skb->data;
-	void *data_end = (void *)(unsigned long long)skb->data_end;
-
-	struct ethhdr *ethh = data;
-	if ((void *)ethh + sizeof(*ethh) < data_end) {
-		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
-			// Parse IPv4 Header
-			struct iphdr *iph = data + sizeof(*ethh);
-			if ((void *)iph + sizeof(*iph) < data_end) {
-				struct event *e;
-				e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-				if (!e) return 0;
-				unsigned long long start_ts;
-				unsigned long long end_ts;
-				start_ts = bpf_ktime_get_ns();
-				e->protocol = iph->protocol;
-				e->start = start_ts;
-				end_ts = bpf_ktime_get_ns();
-				e->end = end_ts;
-				bpf_ringbuf_submit(e, 0);
-				return 0;
-
-				// if (iph->protocol == IPPROTO_TCP) {
-				// 	// Parse TCP Header
-				// 	struct tcphdr *tcph = (void *)iph + sizeof(*iph);
-				// 	if ((void *)tcph + sizeof(*tcph) <= data_end) {
-				// 		if(is_syn(tcph)){
-				// 			/* reserve sample from BPF ringbuf */
-				//
-				// 		}
-				// 	}
-				// }
-			}
-		}
-	}
+int bootstrap(struct sk_buff *skb) {
+	bpf_trace_printk("%u",skb->truesize);
+	// void *data = (void *)(unsigned long long)skb->data;
+	// void *data_end = (void *)(unsigned long long)skb->data_end;
+	//
+	// struct ethhdr *ethh = data;
+	// if ((void *)ethh + sizeof(*ethh) < data_end) {
+	// 	if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+	// 		// Parse IPv4 Header
+	// 		struct iphdr *iph = data + sizeof(*ethh);
+	// 		if ((void *)iph + sizeof(*iph) < data_end) {
+	// 			struct event *e;
+	// 			e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+	// 			if (!e) return 0;
+	// 			unsigned long long start_ts;
+	// 			unsigned long long end_ts;
+	// 			start_ts = bpf_ktime_get_ns();
+	// 			e->protocol = iph->protocol;
+	// 			e->start = start_ts;
+	// 			end_ts = bpf_ktime_get_ns();
+	// 			e->end = end_ts;
+	// 			bpf_ringbuf_submit(e, 0);
+	// 			return 0;
+	//
+	// 			// if (iph->protocol == IPPROTO_TCP) {
+	// 			// 	// Parse TCP Header
+	// 			// 	struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+	// 			// 	if ((void *)tcph + sizeof(*tcph) <= data_end) {
+	// 			// 		if(is_syn(tcph)){
+	// 			// 			/* reserve sample from BPF ringbuf */
+	// 			//
+	// 			// 		}
+	// 			// 	}
+	// 			// }
+	// 		}
+	// 	}
+	// }
 
 	// void *data = (void *)(long)skb->data;
 	// void *data_end = (void *)(long)skb->end;
