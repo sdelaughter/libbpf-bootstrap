@@ -35,7 +35,7 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e) return 0;
 
-	void *data_end = (void *)(unsigned long long)skb->data_end;
+	void *data_end = (void *)(unsigned long long)skb->end;
 	void *data = (void *)(unsigned long long)skb->data;
 	struct ethhdr *eth = data;
 
