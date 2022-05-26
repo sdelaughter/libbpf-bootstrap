@@ -39,8 +39,8 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	void *data = (void *)(unsigned long long)skb->data;
 	struct ethhdr *eth = data;
 
-	if (data + sizeof(struct ethhdr) > data_end)
-		return TC_ACT_SHOT;
+	// if (data + sizeof(struct ethhdr) > data_end)
+	// 	return TC_ACT_SHOT;
 
 
 	// void *data = (void *)(long)skb->data;
