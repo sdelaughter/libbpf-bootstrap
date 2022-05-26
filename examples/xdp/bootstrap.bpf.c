@@ -23,8 +23,8 @@ struct {
 
 // const volatile unsigned long long min_duration_ns = 0;
 
-SEC("tp/net/net_dev_start_xmit")
-int bootstrap(struct sk_buff *skb) {//}), struct net_device *dev) {
+SEC("tp/net/net_dev_queue")
+int bootstrap(struct sk_buff *skb) {
 	struct event *e;
 	unsigned long long start_ts;
 	unsigned long long end_ts;
@@ -32,8 +32,9 @@ int bootstrap(struct sk_buff *skb) {//}), struct net_device *dev) {
 
 	start_ts = bpf_ktime_get_ns();
 
-	void *data_end = (void *)(unsigned long long)skb->end;
 	void *data = (void *)(unsigned long long)skb->data;
+	void *data_end = (void *)(unsigned long long)skb->end;
+
 
 	struct ethhdr *ethh = data;
 	if ((void *)ethh + sizeof(*ethh) <= data_end) {
