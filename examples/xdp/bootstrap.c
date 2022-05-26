@@ -67,7 +67,7 @@ static void sig_handler(int sig)
 static int handle_event(void *ctx, void *data, size_t data_sz)
 {
 	const struct event *e = data;
-	printf("%llu, %llu, %u, %u\n", e->start, e->end, e->size, e->protocol);
+	printf("%llu, %llu, %u, %u\n", e->start, e->end, e->packet_size, e->protocol);
 	return 0;
 }
 
