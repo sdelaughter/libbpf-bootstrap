@@ -16,7 +16,7 @@ const unsigned long ETH_P_IPV6 = 34525;
 struct event {
 	unsigned long long start;
 	unsigned long long end;
-	unsigned int size;
+	unsigned int packet_size;
 	unsigned char protocol;
 };
 
