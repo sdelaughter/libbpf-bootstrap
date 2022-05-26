@@ -31,17 +31,30 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 
 	start_ts = bpf_ktime_get_ns();
 
-	/* reserve sample from BPF ringbuf */
-	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	if (!e) return 0;
-
 	void *data_end = (void *)(unsigned long long)skb->end;
 	void *data = (void *)(unsigned long long)skb->data;
-	struct ethhdr *eth = data;
 
-	// if (data + sizeof(struct ethhdr) > data_end)
-	// 	return TC_ACT_SHOT;
-
+	struct ethhdr *ethh = data;
+	if ((void *)ethh + sizeof(*ethh) <= data_end) {
+		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+			// Parse IPv4 Header
+			struct iphdr *iph = data + sizeof(*ethh);
+			if ((void *)iph + sizeof(*iph) <= data_end) {
+				if (iph->protocol == IPPROTO_TCP) {
+					// Parse TCP Header
+					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+					if ((void *)tcph + sizeof(*tcph) <= data_end) {
+						if(is_syn(tcph)){
+							/* reserve sample from BPF ringbuf */
+							e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+							if (!e) return 0;
+							e->size = skb->truesize;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// void *data = (void *)(long)skb->data;
 	// void *data_end = (void *)(long)skb->end;
@@ -50,8 +63,6 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	// bpf_trace_printk(skb);
 
 	end_ts = bpf_ktime_get_ns();
-
-	e->size = skb->truesize;
 	e->start = start_ts;
 	e->end = end_ts;
 	bpf_ringbuf_submit(e, 0);
