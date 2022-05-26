@@ -23,7 +23,7 @@ struct {
 
 // const volatile unsigned long long min_duration_ns = 0;
 
-SEC("tp/net/net_dev_queue")
+SEC("tp/net/netif_receive_skb")
 int bootstrap(struct sk_buff *skb) {
 	void *data = (void *)(unsigned long long)skb->data;
 	void *data_end = (void *)(unsigned long long)skb->end;
