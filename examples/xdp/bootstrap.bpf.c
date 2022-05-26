@@ -5,7 +5,6 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include <linux/pkt_cls.h>
 #include "bootstrap.h"
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
@@ -38,11 +37,16 @@ int bootstrap(struct sk_buff *skb) {
 			if ((void *)iph + sizeof(*iph) <= data_end) {
 				struct event *e;
 				e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-				if (!e) return TC_ACT_OK;
+				if (!e) return 0;
 				unsigned long long start_ts;
 				unsigned long long end_ts;
 				start_ts = bpf_ktime_get_ns();
 				e->protocol = iph->protocol;
+				e->start = start_ts;
+				end_ts = bpf_ktime_get_ns();
+				e->end = end_ts;
+				bpf_ringbuf_submit(e, 0);
+				return 0;
 
 				// if (iph->protocol == IPPROTO_TCP) {
 				// 	// Parse TCP Header
@@ -64,9 +68,5 @@ int bootstrap(struct sk_buff *skb) {
 
 	// bpf_trace_printk(skb);
 
-	end_ts = bpf_ktime_get_ns();
-	e->start = start_ts;
-	e->end = end_ts;
-	bpf_ringbuf_submit(e, 0);
-	return TC_ACT_OK	;
+	return 0;
 }
