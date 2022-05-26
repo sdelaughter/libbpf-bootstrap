@@ -23,7 +23,7 @@ struct {
 // const volatile unsigned long long min_duration_ns = 0;
 
 SEC("tp/net/net_dev_start_xmit")
-int bootstrap(const struct sk_buff *skb, const struct net_device *dev) {
+int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	struct event *e;
 	unsigned long long start_ts;
 	unsigned long long end_ts;
