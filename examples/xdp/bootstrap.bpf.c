@@ -41,9 +41,9 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 
 	// bpf_trace_printk(skb);
 
-	// end_ts = bpf_ktime_get_ns();
+	end_ts = bpf_ktime_get_ns();
 
-	e->size = skb->truesize;
+	// e->size = skb->truesize;
 	e->start = start_ts;
 	e->end = end_ts;
 	bpf_ringbuf_submit(e, 0);
