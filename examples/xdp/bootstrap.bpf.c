@@ -27,7 +27,7 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	struct event *e;
 	unsigned long long start_ts;
 	unsigned long long end_ts;
-	// unsigned int pkt_size;
+	unsigned int pkt_size;
 
 	start_ts = bpf_ktime_get_ns();
 
@@ -36,13 +36,13 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 	if (!e)
 		return 0;
 
-	// void *data = (void *)(long)skb->data;
-	// void *data_end = (void *)(long)skb->end;
-	// pkt_size = data_end - data;
+	void *data = (void *)(long)skb->data;
+	void *data_end = (void *)(long)skb->end;
+	pkt_size = data_end - data;
 
 	end_ts = bpf_ktime_get_ns();
 
-	// e->size = pkt_size;
+	e->size = pkt_size;
 	e->start = start_ts;
 	e->end = end_ts;
 	bpf_ringbuf_submit(e, 0);
