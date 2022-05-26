@@ -26,7 +26,7 @@ struct {
 SEC("tp/net/netif_receive_skb")
 int bootstrap(struct sk_buff *skb) {
 	void *data = (void *)(unsigned long long)skb->data;
-	void *data_end = (void *)(unsigned long long)skb->end;
+	void *data_end = data + (unsigned int)skb->end;
 
 
 	struct ethhdr *ethh = data;
