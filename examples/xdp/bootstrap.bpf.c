@@ -33,16 +33,17 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 
 	/* reserve sample from BPF ringbuf */
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-	if (!e)
-		return 0;
+	if (!e) return 0;
 
-	void *data = (void *)(long)skb->data;
-	void *data_end = (void *)(long)skb->end;
-	pkt_size = data_end - data;
+	// void *data = (void *)(long)skb->data;
+	// void *data_end = (void *)(long)skb->end;
+	// pkt_size = data_end - data;
+
+	// bpf_trace_printk(skb);
 
 	end_ts = bpf_ktime_get_ns();
 
-	e->size = pkt_size;
+	e->size = skb->truesize;
 	e->start = start_ts;
 	e->end = end_ts;
 	bpf_ringbuf_submit(e, 0);
