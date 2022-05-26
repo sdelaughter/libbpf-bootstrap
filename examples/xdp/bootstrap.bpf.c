@@ -25,7 +25,7 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 SEC("tp/net/net_dev_queue")
 int bootstrap(struct sk_buff *skb) {
-	unsigned int truesize = skb->truesize
+	unsigned int truesize = skb->truesize;
 	bpf_trace_printk("%u",truesize);
 	// void *data = (void *)(unsigned long long)skb->data;
 	// void *data_end = (void *)(unsigned long long)skb->data_end;
