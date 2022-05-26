@@ -28,6 +28,7 @@ int bootstrap(struct sk_buff *skb) {
 	unsigned int truesize;
 	unsigned long long start_ts;
 	unsigned long long end_ts;
+	struct event *e;
 
 	start_ts = bpf_ktime_get_ns();
 
@@ -51,8 +52,6 @@ int bootstrap(struct sk_buff *skb) {
 	// 		// Parse IPv4 Header
 	// 		struct iphdr *iph = data + sizeof(*ethh);
 	// 		if ((void *)iph + sizeof(*iph) < data_end) {
-	// 			struct event *e;
-
 
 
 	//
