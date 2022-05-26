@@ -47,9 +47,13 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 		// 			if ((void *)tcph + sizeof(*tcph) <= data_end) {
 		// 				if(is_syn(tcph)){
 		// 					/* reserve sample from BPF ringbuf */
-		// 					e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
-		// 					if (!e) return 0;
-		e->size = skb->truesize;
+			e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+			if (!e) return 0;
+			e->size = skb->truesize;
+			end_ts = bpf_ktime_get_ns();
+			e->start = start_ts;
+			e->end = end_ts;
+			bpf_ringbuf_submit(e, 0);
 		// 				}
 		// 			}
 		// 		}
@@ -63,9 +67,6 @@ int bootstrap(struct sk_buff *skb, struct net_device *dev) {
 
 	// bpf_trace_printk(skb);
 
-	end_ts = bpf_ktime_get_ns();
-	e->start = start_ts;
-	e->end = end_ts;
-	bpf_ringbuf_submit(e, 0);
+
 	return 0;
 }
