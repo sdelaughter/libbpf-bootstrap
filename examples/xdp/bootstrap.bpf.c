@@ -24,9 +24,9 @@ struct {
 // const volatile unsigned long long min_duration_ns = 0;
 
 SEC("tp/net/net_dev_queue")
-int bootstrap(struct sk_buff *skb) {
+int bootstrap(struct sk_msg_md *skb) {
 	void *data = (void *)(unsigned long long)skb->data;
-	void *data_end = data + (unsigned int)skb->data_len +1;
+	void *data_end = (unsigned long long)skb->data_end;
 
 	struct ethhdr *ethh = data;
 	if ((void *)ethh + sizeof(*ethh) < data_end) {
