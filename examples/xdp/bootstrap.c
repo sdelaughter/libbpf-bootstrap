@@ -71,7 +71,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	return 0;
 }
 
-static int bpf_object__load_skeleton_tp(struct bpf_object_skeleton *s) {
+static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
 	int i, err;
 
 	for (i = 0; i < s->prog_cnt; i++) {
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Load & verify BPF programs */
-	err = bpf_object__load(skel);
+	err = bootstrap_bpf__load(skel);
 	if (err) {
 		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
 		goto cleanup;
