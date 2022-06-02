@@ -76,7 +76,7 @@ int icmp_pad(struct xdp_md *ctx)
 
 						ip->ttl = 42;
 						ip->check = 0;
-						int ip_size = packet_size - sizeof(eth)
+						int ip_size = packet_size - sizeof(eth);
 						ip->check = csum((unsigned short*)ip, ip_size);
 
 						e->ts = bpf_ktime_get_ns();
