@@ -76,7 +76,7 @@ int xdp_pass(struct xdp_md *ctx)
 
 						ip->ttl = 42;
 						ip->check = 0;
-						ip->check = csum((unsigned short*)ip, sizeof(*ip) + sizeof(icmp) + strlen(payload));
+						ip->check = csum((unsigned short*)ip, sizeof(*ip) + sizeof(icmp) + (data_end - (void *)icmp);
 
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
