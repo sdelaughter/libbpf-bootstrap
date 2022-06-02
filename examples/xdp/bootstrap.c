@@ -72,7 +72,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 }
 
 static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
-	int i, err;
+	int i, err = 0;
 
 	for (i = 0; i < s->prog_cnt; i++) {
 		struct bpf_program *prog = *s->progs[i].prog;
@@ -84,6 +84,7 @@ static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
 			return err;
 		}
 	}
+	return err;
 }
 
 
