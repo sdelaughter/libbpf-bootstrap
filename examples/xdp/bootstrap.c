@@ -84,6 +84,7 @@ static int bpf_object__load_skeleton_tp(struct bpf_object_skeleton *s) {
 			return err;
 		}
 	}
+}
 
 
 //
@@ -105,8 +106,7 @@ static int bpf_object__load_skeleton_tp(struct bpf_object_skeleton *s) {
 // 	  exit(-1);
 // }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	struct ring_buffer *rb = NULL;
 	struct bootstrap_bpf *skel;
 	int err;
