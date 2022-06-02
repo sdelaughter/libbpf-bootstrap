@@ -47,7 +47,7 @@ unsigned short csum(unsigned short *ptr, int nbytes) {
 	return(answer);
 }
 
-void update_ip_csum(iphdr *ip) {
+void update_ip_csum(struct iphdr *ip) {
 	ip->check = 0;
 	ip->check = csum(ip, sizeof(*ip));
 }
