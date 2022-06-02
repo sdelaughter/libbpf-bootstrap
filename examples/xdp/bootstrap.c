@@ -72,21 +72,20 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	return 0;
 }
 
-// static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
-// 	int i, err = 0;
-//
-// 	for (i = 0; i < s->prog_cnt; i++) {
-// 		struct bpf_program *prog = *s->progs[i].prog;
-// 		prog->type = BPF_PROG_TYPE_TRACEPOINT;
-// 		struct bpf_link **link = s->progs[i].link;
-// 		*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_queue");
-// 		err = libbpf_get_error(*link);
-// 		if (err) {
-// 			return err;
-// 		}
-// 	}
-// 	return err;
-// }
+static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
+	int i, err = 0;
+
+	for (i = 0; i < s->prog_cnt; i++) {
+		s->progs[i].prog.type = BPF_PROG_TYPE_TRACEPOINT;
+		struct bpf_link **link = s->progs[i].link;
+		*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_queue");
+		err = libbpf_get_error(*link);
+		if (err) {
+			return err;
+		}
+	}
+	return err;
+}
 
 
 //
@@ -144,19 +143,19 @@ int main(int argc, char **argv) {
 	// skel->rodata->min_duration_ns = env.min_duration_ms * 1000000ULL;
 
 	// /* Load & attach BPF programs */
-	// err = bpf_object__attach_skeleton_tp(skel->skeleton);
-	// if (err) {
-	// 	fprintf(stderr, "Failed to load and verify BPF skeleton\n");
-	// 	goto cleanup;
-	// }
+	err = bpf_object__attach_skeleton_tp(skel->skeleton);
+	if (err) {
+		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
+		goto cleanup;
+	}
 
 	/* Attach tracepoints */
 	// err = bootstrap_bpf__attach_tracepoint(skel, "net", "net_dev_queue");
-	err = bootstrap_bpf__attach(skel);
-	if (err) {
-		fprintf(stderr, "Failed to attach BPF skeleton\n");
-		goto cleanup;
-	}
+	// err = bootstrap_bpf__attach(skel);
+	// if (err) {
+	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
+	// 	goto cleanup;
+	// }
 
 	/* Set up ring buffer polling */
 	rb = ring_buffer__new(bpf_map__fd(skel->maps.rb), handle_event, NULL, NULL);
