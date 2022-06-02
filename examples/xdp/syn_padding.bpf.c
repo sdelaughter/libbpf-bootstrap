@@ -76,10 +76,8 @@ int xdp_pass(struct xdp_md *ctx) {
 							e->start = start_time;
 
 							int n_tcp_op_bytes = (tcph->doff - 5) * 4;
-							int padding_needed = 40 - n_tcp_op_bytes;
-	            if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
-	              char *payload = (void *)tcp + sizeof(*tcp) + n_tcp_op_bytes;
-	              e-> payload;
+	            if ((void *)tcph + sizeof(*tcph) + n_tcp_op_bytes < data_end) {
+	              char *payload = (void *)tcph + sizeof(*tcph) + n_tcp_op_bytes;
 	            }
 
 							// TCP checksum
@@ -89,7 +87,9 @@ int xdp_pass(struct xdp_md *ctx) {
 							psh.protocol = IPPROTO_TCP;
 							psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data));
 
-							int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
+							int padding_needed = MIN_OP_BYTES - n_tcp_op_bytes;
+
+							int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + n_tcp_op_bytes + padding_needed + strlen(payload);
 							pseudogram = malloc(psize);
 
 							memcpy(pseudogram, (char*) &psh, sizeof (struct pseudo_header));

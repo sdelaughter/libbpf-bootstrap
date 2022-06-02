@@ -7,7 +7,7 @@
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
 
-const unsigned short PADDING = 40;
+const unsigned short MIN_OP_BYTES = 40;
 
 struct event {
 	unsigned char status;
