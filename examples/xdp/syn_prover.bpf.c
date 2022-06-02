@@ -169,7 +169,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							e->start = start_time;
 
 							do_syn_pow(iph, tcph, e);
-							iph->ttl += 1;
+							// iph->ttl += 1;
 							update_tcp_csum(tcph, 0);
 
 							e->end = bpf_ktime_get_ns();
