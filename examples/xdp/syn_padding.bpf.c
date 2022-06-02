@@ -5,7 +5,7 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include "syn_prover.h"
+#include "syn_padding.h"
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
@@ -44,6 +44,8 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
 
+
+
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
 	unsigned long long start_time = bpf_ktime_get_ns();
@@ -73,8 +75,27 @@ int xdp_pass(struct xdp_md *ctx) {
 							}
 							e->start = start_time;
 
-							do_syn_pow(iph, tcph, e);
-							update_tcp_csum(tcph, 0);
+							int n_tcp_op_bytes = (tcph->doff - 5) * 4;
+							int padding_needed = 40 - n_tcp_op_bytes;
+	            if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
+	              char *payload = (void *)tcp + sizeof(*tcp) + n_tcp_op_bytes;
+	              e-> payload;
+	            }
+
+							// TCP checksum
+							psh.source_address = inet_addr(default_src_addr);
+							psh.dest_address = sin.sin_addr.s_addr;
+							psh.placeholder = 0;
+							psh.protocol = IPPROTO_TCP;
+							psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data));
+
+							int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + strlen(data);
+							pseudogram = malloc(psize);
+
+							memcpy(pseudogram, (char*) &psh, sizeof (struct pseudo_header));
+							memcpy(pseudogram + sizeof(struct pseudo_header), tcph, sizeof(struct tcphdr) + strlen(data));
+
+							tcph->check = csum((unsigned short*) pseudogram, psize);
 
 							e->end = bpf_ktime_get_ns();
 							bpf_ringbuf_submit(e, 0);
