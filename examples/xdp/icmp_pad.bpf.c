@@ -24,14 +24,32 @@ struct {
 // const volatile unsigned long long min_duration_ns = 0;
 //
 
-static void update_ip_csum(struct iphdr* iph, __u8 old_ttl) {
-  if (old_ttl == iph->ttl){
-    return;
-  }
-  __sum16 sum = old_ttl + (~bpf_ntohs(*(__u8 *)&iph->ttl) & 0xffff);
-  sum += bpf_ntohs(iph->check);
-  sum = (sum & 0xffff) + (sum>>16);
-  iph->check = bpf_htons(sum + (sum>>16) + 1);
+unsigned short csum(unsigned short *ptr, int nbytes) {
+	register long sum;
+	unsigned short oddbyte;
+	register short answer;
+
+	sum=0;
+	while(nbytes>1) {
+		sum+=*ptr++;
+		nbytes-=2;
+	}
+	if(nbytes==1) {
+		oddbyte=0;
+		*((u_char*)&oddbyte)=*(u_char*)ptr;
+		sum+=oddbyte;
+	}
+
+	sum = (sum>>16)+(sum & 0xffff);
+	sum = sum + (sum>>16);
+	answer=(short)~sum;
+
+	return(answer);
+}
+
+void update_ip_csum(iphdr *ip) {
+	ip->check = 0;
+	ip->check = csum(ip, sizeof(*ip));
 }
 
 SEC("xdp")
@@ -60,9 +78,8 @@ int xdp_pass(struct xdp_md *ctx)
 						}
 						// memset((void *)e, 0, sizeof(struct event));
 
-						__u8 old_ttl = ip->ttl;
 						ip->ttl = 42;
-						update_ip_csum(ip, old_ttl);
+						update_ip_csum(ip);
 
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
