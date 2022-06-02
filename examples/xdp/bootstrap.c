@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 	// skel->rodata->min_duration_ns = env.min_duration_ms * 1000000ULL;
 
 	/* Load & attach BPF programs */
-	err = bpf_object__attach_skeleton_tp(skel);
+	err = bpf_object__attach_skeleton_tp(skel->skeleton);
 	if (err) {
 		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
 		goto cleanup;
