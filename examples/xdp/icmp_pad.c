@@ -110,7 +110,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	}
 
 	float norm_ts = (e->ts - start_ts) / 1000000000.0;
-	printf("%-8f | %-12u\n", norm_ts, e->packet_size;
+	printf("%-8f | %-12u\n", norm_ts, e->packet_size);
 
 	return 0;
 }
