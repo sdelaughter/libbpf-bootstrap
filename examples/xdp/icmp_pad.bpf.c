@@ -47,11 +47,6 @@ unsigned short csum(unsigned short *ptr, int nbytes) {
 	return(answer);
 }
 
-void update_ip_csum(struct iphdr *ip) {
-	ip->check = 0;
-	ip->check = csum(ip, sizeof(*ip));
-}
-
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx)
 {
@@ -71,6 +66,7 @@ int xdp_pass(struct xdp_md *ctx)
           // Parse ICMP Header
           struct icmphdr *icmp = (void *)ip + sizeof(*ip);
           if ((void *)icmp + sizeof(*icmp) <= data_end) {
+						char *payload = (void *)icmp + sizeof(*icmp);
 						struct event *e;
 						e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 					  if (!e) {
@@ -79,7 +75,8 @@ int xdp_pass(struct xdp_md *ctx)
 						// memset((void *)e, 0, sizeof(struct event));
 
 						ip->ttl = 42;
-						update_ip_csum(ip);
+						ip->check = 0;
+						ip->check = csum((unsigned short*)ip, sizeof(*ip) + sizeof(icmp) + strlen(payload));
 
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
