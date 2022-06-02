@@ -151,7 +151,8 @@ int main(int argc, char **argv) {
 	// }
 
 	/* Attach tracepoints */
-	err = bootstrap_bpf__attach_tracepoint(skel, "net", "net_dev_queue");
+	// err = bootstrap_bpf__attach_tracepoint(skel, "net", "net_dev_queue");
+	err = bootstrap_bpf__attach(skel);
 	if (err) {
 		fprintf(stderr, "Failed to attach BPF skeleton\n");
 		goto cleanup;
