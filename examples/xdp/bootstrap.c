@@ -76,11 +76,21 @@ static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
 	int i, err = 0;
 
 	for (i = 0; i < s->prog_cnt; i++) {
-		*s->progs[i].prog->type = BPF_PROG_TYPE_TRACEPOINT;
+		struct bpf_program *prog = *s->progs[i].prog;
 		struct bpf_link **link = s->progs[i].link;
+
+		if (!prog->load)
+			continue;
+
+		/* auto-attaching not supported for this program */
+		if (!prog->sec_def || !prog->sec_def->attach_fn)
+			continue;
+
 		*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_queue");
 		err = libbpf_get_error(*link);
 		if (err) {
+			pr_warn("failed to auto-attach program '%s': %d\n",
+				bpf_program__name(prog), err);
 			return err;
 		}
 	}
