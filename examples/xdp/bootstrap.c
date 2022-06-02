@@ -71,6 +71,40 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	return 0;
 }
 
+static int bpf_object__load_skeleton_tp(struct bpf_object_skeleton *s) {
+	int i, err;
+
+	for (i = 0; i < s->prog_cnt; i++) {
+		struct bpf_program *prog = *s->progs[i].prog;
+		prog->type = BPF_PROG_TYPE_TRACEPOINT;
+		struct bpf_link **link = s->progs[i].link;
+		*link = bpf_program__attach_tracepoint(prog);
+		err = libbpf_get_error(*link);
+		if (err) {
+			return err;
+		}
+	}
+
+
+//
+// 	union bpf_attr attr = {};
+// 	unsigned char log_buf[4096] = {};
+// 	insn = (struct bpf_insn*)buf;
+//   attr.prog_type = BPF_PROG_TYPE_TRACEPOINT;
+//   attr.insns = (unsigned long)insn;
+//   attr.insn_cnt = n / sizeof(struct bpf_insn);
+//   attr.license = (unsigned long)"GPL";
+//   attr.log_size = sizeof(log_buf);
+//   attr.log_buf = (unsigned long)log_buf;
+//   attr.log_level = 1;
+//   attr.kern_version = 264656;
+//   pfd = syscall(SYS_bpf, BPF_PROG_LOAD, &attr, sizeof(attr));
+//   if (pfd < 0) {
+// 	  printf("bpf syscall error: %s\n", strerror(errno));
+// 	  printf("log_buf = %s\n", log_buf);
+// 	  exit(-1);
+// }
+
 int main(int argc, char **argv)
 {
 	struct ring_buffer *rb = NULL;
@@ -100,19 +134,26 @@ int main(int argc, char **argv)
 	/* Parameterize BPF code with minimum duration parameter */
 	// skel->rodata->min_duration_ns = env.min_duration_ms * 1000000ULL;
 
-	/* Load & verify BPF programs */
-	err = bootstrap_bpf__load(skel);
+	/* Load & attach BPF programs */
+	err = bpf_object__load_skeleton_tp(skel);
 	if (err) {
 		fprintf(stderr, "Failed to load and verify BPF skeleton\n");
 		goto cleanup;
 	}
 
-	/* Attach tracepoints */
-	err = bootstrap_bpf__attach(skel);
-	if (err) {
-		fprintf(stderr, "Failed to attach BPF skeleton\n");
-		goto cleanup;
-	}
+	// /* Load & verify BPF programs */
+	// err = bpf_object__load(skel);
+	// if (err) {
+	// 	fprintf(stderr, "Failed to load and verify BPF skeleton\n");
+	// 	goto cleanup;
+	// }
+
+	// /* Attach tracepoints */
+	// err = bootstrap_bpf__attach(skel);
+	// if (err) {
+	// 	fprintf(stderr, "Failed to attach BPF skeleton\n");
+	// 	goto cleanup;
+	// }
 
 	/* Set up ring buffer polling */
 	rb = ring_buffer__new(bpf_map__fd(skel->maps.rb), handle_event, NULL, NULL);
