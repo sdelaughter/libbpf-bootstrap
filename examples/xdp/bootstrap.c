@@ -76,9 +76,9 @@ static int bpf_object__attach_skeleton_tp(struct bpf_object_skeleton *s) {
 
 	for (i = 0; i < s->prog_cnt; i++) {
 		struct bpf_program *prog = *s->progs[i].prog;
-		prog->type = BPF_PROG_TYPE_TRACEPOINT;
+		// prog->type = BPF_PROG_TYPE_TRACEPOINT;
 		struct bpf_link **link = s->progs[i].link;
-		*link = bpf_program__attach_tracepoint(prog, "net", "net_dev_queue");
+		*link = bpf_program__attach(prog);//, "net", "net_dev_queue");
 		err = libbpf_get_error(*link);
 		if (err) {
 			return err;
