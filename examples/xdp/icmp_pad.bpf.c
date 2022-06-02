@@ -48,7 +48,7 @@ static unsigned short csum(unsigned short *ptr, int nbytes) {
 }
 
 SEC("xdp")
-int xdp_pass(struct xdp_md *ctx)
+int icmp_pad(struct xdp_md *ctx)
 {
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
