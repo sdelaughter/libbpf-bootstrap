@@ -52,7 +52,7 @@ int xdp_pass(struct xdp_md *ctx)
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
 
-						ip->ttl = bpf_htons(42);
+						ip->ttl = 42;
             if ((void *)icmp + sizeof(*icmp) <= data_end) {
               char *payload = (void *)icmp + sizeof(*icmp);
             }
