@@ -49,18 +49,15 @@ int xdp_pass(struct xdp_md *ctx)
 						}
 						// memset((void *)e, 0, sizeof(struct event));
 
+						ip->ttl = 42;
+
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
-
-						ip->ttl = 42;
-            if ((void *)icmp + sizeof(*icmp) <= data_end) {
-              char *payload = (void *)icmp + sizeof(*icmp);
-            }
+						bpf_ringbuf_submit(e, 0);
           }
         }
       }
     }
 	}
-	bpf_ringbuf_submit(e, 0);
   return XDP_PASS;
 }
