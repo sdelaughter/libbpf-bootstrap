@@ -34,7 +34,7 @@ int xdp_pass(struct xdp_md *ctx)
 	// Parse Ethernet Header
   struct ethhdr *eth = data;
   if ((void *)eth + sizeof(*eth) <= data_end) {
-    if (bpf_htons(eth->h_proto) == ETH_P_IP) {
+    if (bpf_ntohs(eth->h_proto) == ETH_P_IP) {
       // Parse IPv4 Header
       struct iphdr *ip = data + sizeof(*eth);
       if ((void *)ip + sizeof(*ip) <= data_end) {
@@ -52,7 +52,7 @@ int xdp_pass(struct xdp_md *ctx)
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
 
-						icmp->sequence = 42;
+						icmp->id = bpf_htons(42);
             if ((void *)icmp + sizeof(*icmp) <= data_end) {
               char *payload = (void *)icmp + sizeof(*icmp);
             }
