@@ -24,7 +24,7 @@ struct {
 // const volatile unsigned long long min_duration_ns = 0;
 //
 
-unsigned short csum(unsigned short *ptr, int nbytes) {
+static unsigned short csum(unsigned short *ptr, int nbytes) {
 	register long sum;
 	unsigned short oddbyte;
 	register short answer;
