@@ -28,7 +28,7 @@ static void update_ip_csum(struct iphdr* iph, __u8 old_ttl) {
   if (old_ttl == iph->ttl){
     return;
   }
-  __sum16 sum = old_ttl + (~bpf_ntohs(*(unsigned short *)&iph->ttl) & 0xffff);
+  __sum16 sum = old_ttl + (~bpf_ntohs(*(__u8 *)&iph->ttl) & 0xffff);
   sum += bpf_ntohs(iph->check);
   sum = (sum & 0xffff) + (sum>>16);
   iph->check = bpf_htons(sum + (sum>>16) + 1);
