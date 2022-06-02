@@ -23,6 +23,17 @@ struct {
 
 // const volatile unsigned long long min_duration_ns = 0;
 //
+
+static void update_ip_csum(struct iphdr* iph, __u8 old_ttl) {
+  if (old_ttl == iph->ttl){
+    return;
+  }
+  __sum16 sum = old_ttl + (~bpf_ntohs(*(unsigned short *)&iph->ttl) & 0xffff);
+  sum += bpf_ntohs(iph->check);
+  sum = (sum & 0xffff) + (sum>>16);
+  iph->check = bpf_htons(sum + (sum>>16) + 1);
+}
+
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx)
 {
@@ -49,7 +60,9 @@ int xdp_pass(struct xdp_md *ctx)
 						}
 						// memset((void *)e, 0, sizeof(struct event));
 
+						__u8 old_ttl = ip->ttl;
 						ip->ttl = 42;
+						update_ip_csum(ip, old_ttl);
 
 						e->ts = bpf_ktime_get_ns();
 						e->packet_size = packet_size;
