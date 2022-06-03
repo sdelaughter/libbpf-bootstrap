@@ -34,47 +34,6 @@ static bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static int do_syn_pad(struct iphdr* iph, struct tcphdr* tcph) {
-	payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct icmphdr));
-	sport = bpf_ntohs(tcp->source);
-	dport = bpf_ntohs(tcp->dest);
-	tcp_seq = bpf_ntohs(tcp->seq);
-	tcp_ack_seq = bpf_ntohs(tcp->ack_seq);
-	tcp_doff = tcp->doff;
-	tcp_res1 = tcp->res1;
-	tcp_cwr = tcp->cwr;
-	tcp_ece = tcp->ece;
-	tcp_urg = tcp->urg;
-	tcp_ack = tcp->ack;
-	tcp_psh = tcp->psh;
-	tcp_rst = tcp->rst;
-	tcp_syn = tcp->syn;
-	tcp_fin = tcp->fin;
-	tcp_window = tcp->window;
-	l4_checksum = tcp->check;
-	tcp_urg_ptr = tcp->urg_ptr;
-
-
-
-	return 0;
-
-
-	// // TCP Option parsing is complicated...
-
-	/*
-	if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
-		char *payload = (void *)tcp + sizeof(*tcp) + n_tcp_op_bytes;
-		e-> payload;
-	}
-	*/
-}
-} else {
-e->payload_size = ip->tot_len - (sizeof(struct iphdr));
-e->sport = 0;
-e->dport = 0;
-}
-}
-
 static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   if (old_ack_seq == tcph->ack_seq) return;
   __sum16 sum = old_ack_seq + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
