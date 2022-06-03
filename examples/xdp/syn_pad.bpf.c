@@ -6,7 +6,6 @@
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
 #include "syn_pad.h"
-#include <string.h>
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
@@ -43,10 +42,30 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
 
+void bpf_memset(void *s, int c,  unsigned int len){
+    unsigned char* p=s;
+    while(len--) {
+        *p++ = (unsigned char)c;
+    }
+    return s;
+}
+
+void bpf_memmove_left(void *dst, void * src, unsigned int len){
+	for (int i=len-1; i >= 0; i--) {
+		(unsigned char *)dst + i = (unsigned char) *(src+i)
+	}
+}
+
+void bpf_memmove_right(void *src, void *dst, unsigned int len){
+    for (int i=0; i<len; i++) {
+				(unsigned char *)dst + i = (unsigned char) *(src+i)
+    }
+}
+
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
 	bool found_syn = false;
-	unsigned short padding_added = 0;
+	unsigned int padding_added = 0;
 
 	unsigned long long start_time;
 	unsigned long long end_time;
@@ -72,20 +91,20 @@ int xdp_pass(struct xdp_md *ctx) {
 						if (is_syn(tcph)) {
 							found_syn = true;
 							int n_tcp_op_bytes = (tcp->doff - 5) * 4;
-							int padding_needed = SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
+							unsigned int padding_needed = SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
 							if (padding_needed > 0) {
 								if (bpf_xdp_adjust_tail(xdp, padding_needed)) {
 										return XDP_PASS;
 								}
-								if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
-		              char *payload = (void *)tcp + sizeof(*tcp) + n_tcp_op_bytes;
-									size_t payload_size = iph->tot_len - (sizeof(struct iphdr) + sizeof(struct tcphdr));
-									memmove((void *)payload + padding_needed, (void *) payload, payload_size);
-									if (padding_needed > 1) {
-										memset((void * )payload, NO_OP_VAL, padding_needed - 1);
-									}
-									memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
-		            }
+								// if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
+		            //   char *payload = (void *)tcp + sizeof(*tcp) + n_tcp_op_bytes;
+								// 	size_t payload_size = iph->tot_len - (sizeof(struct iphdr) + sizeof(struct tcphdr));
+								// 	// bpf_memmove_right((void *)payload + padding_needed, (void *) payload, payload_size);
+		            // }
+								if (padding_needed > 1) {
+									bpf_memset((void * )payload, NO_OP_VAL, padding_needed - 1);
+								}
+								bpf_memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
 							}
