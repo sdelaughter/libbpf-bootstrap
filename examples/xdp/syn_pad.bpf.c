@@ -49,17 +49,17 @@ void bpf_memset(void *s, int c,  unsigned int len){
     }
 }
 
-void bpf_memmove_left(void *dst, void * src, unsigned int len){
-	for (int i=len-1; i >= 0; i--) {
-		(unsigned char *)dst + i = (unsigned char) *((unsigned char *)src+i)
-	}
-}
-
-void bpf_memmove_right(void *src, void *dst, unsigned int len){
-    for (int i=0; i<len; i++) {
-				(unsigned char *)dst + i = (unsigned char) *((unsigned char *)src+i)
-    }
-}
+// void bpf_memmove_left(void *dst, void * src, unsigned int len){
+// 	for (int i=len-1; i >= 0; i--) {
+// 		(unsigned char *)dst + i = (unsigned char) *((unsigned char *)src+i)
+// 	}
+// }
+//
+// void bpf_memmove_right(void *src, void *dst, unsigned int len){
+//     for (int i=0; i<len; i++) {
+// 				(unsigned char *)dst + i = (unsigned char) *((unsigned char *)src+i)
+//     }
+// }
 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
