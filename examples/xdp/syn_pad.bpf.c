@@ -78,14 +78,14 @@ int xdp_pass(struct xdp_md *ctx) {
 								}
 								if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
 		              char *payload = (void *)tcp + sizeof(*tcp) + n_tcp_op_bytes;
-									size_t payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct tcphdr));
-									memmove((void *)payload + padding_needed, (void * payload), payload_size);
-									if padding_needed > 1 {
+									size_t payload_size = iph->tot_len - (sizeof(struct iphdr) + sizeof(struct tcphdr));
+									memmove((void *)payload + padding_needed, (void *) payload, payload_size);
+									if (padding_needed > 1) {
 										memset((void * )payload, NO_OP_VAL, padding_needed - 1);
 									}
 									memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
 		            }
-								tcp->doff = (SYN_PAD_MIN_BYTES/4) + 5;
+								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
 							}
 						}
