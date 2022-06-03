@@ -89,10 +89,10 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if (is_syn(tcph)) {
 							found_syn = true;
-							int n_tcp_op_bytes = (tcp->doff - 5) * 4;
+							int n_tcp_op_bytes = (tcph->doff - 5) * 4;
 							unsigned int padding_needed = SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
 							if (padding_needed > 0) {
-								if (bpf_xdp_adjust_tail(xdp, padding_needed)) {
+								if (bpf_xdp_adjust_tail(ctx, padding_needed)) {
 										return XDP_PASS;
 								}
 								// if ((void *)tcp + sizeof(*tcp) + n_tcp_op_bytes < data_end) {
@@ -100,10 +100,10 @@ int xdp_pass(struct xdp_md *ctx) {
 								// 	size_t payload_size = iph->tot_len - (sizeof(struct iphdr) + sizeof(struct tcphdr));
 								// 	// bpf_memmove_right((void *)payload + padding_needed, (void *) payload, payload_size);
 		            // }
-								if (padding_needed > 1) {
-									bpf_memset((void * )payload, NO_OP_VAL, padding_needed - 1);
-								}
-								bpf_memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
+								// if (padding_needed > 1) {
+								// 	bpf_memset((void * )payload, NO_OP_VAL, padding_needed - 1);
+								// }
+								// bpf_memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
 							}
