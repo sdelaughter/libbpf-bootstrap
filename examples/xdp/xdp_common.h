@@ -4,8 +4,8 @@
 #ifndef __XDP_COMMON_H
 #define __XDP_COMMON_H
 
-#define MEASURE_TIME true;
-#define GENERATE_EVENTS true;
+#define MEASURE_TIME 1;
+#define GENERATE_EVENTS 1;
 
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
