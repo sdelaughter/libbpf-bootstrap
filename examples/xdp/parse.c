@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 
 cleanup:
 	/* Clean up */
-	printf("]")
+	printf("]");
 	ring_buffer__free(rb);
 	parse_bpf__detach(skel);
 	parse_bpf__destroy(skel);
