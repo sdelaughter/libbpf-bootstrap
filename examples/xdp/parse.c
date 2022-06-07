@@ -146,23 +146,22 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 		ip_protocol = l64a(e->ip_protocol);
 	}
 
-	printf(
-		"{timestamp: %f,\n"
-		" length: %u,\n"
-		" l2_header: {\n"
-		"\tsrc: %s,\n"
-		"\tdst: %s,\n"
-		"\tl3_protocol: %s\n"
-		" }, l3_header: {\n"
-		"\tsrc: %03d.%03d.%03d.%03d,\n"
-		"\tdst: %03d.%03d.%03d.%03d,\n"
-		"\tttl: %u,\n"
-	 	"\tl4_protocol: %s\n"
-		" }, l4_header: {\n"
-		"\tsport: %u,\n"
-		"\tdport: %u\n"
-		" }, payload_size: \n"
-		"}\n",
+	printf("{timestamp: %f,\n"
+				 " length: %u,\n"
+				 " l2_header: {\n"
+				 "\tsrc: %s,\n"
+				 "\tdst: %s,\n"
+				 "\tl3_protocol: %s\n"
+				 " }, l3_header: {\n"
+				 "\tsrc: %03d.%03d.%03d.%03d,\n"
+				 "\tdst: %03d.%03d.%03d.%03d,\n"
+				 "\tttl: %u,\n"
+			 	 "\tl4_protocol: %s\n"
+				 " }, l4_header: {\n"
+				 "\tsport: %u,\n"
+				 "\tdport: %u\n"
+				 " }, payload_size: \n"
+				 "}\n",
 		norm_ts,
 		e->packet_size,
 		e->eth_src,
