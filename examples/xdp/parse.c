@@ -146,7 +146,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 		ip_protocol = l64a(e->ip_protocol);
 	}
 
-	printf("{timestamp: %ull,\n"
+	printf("{timestamp: %llu,\n"
 				 " length: %u,\n"
 				 " l2_header: {\n"
 				 "\tl3_protocol: %s\n"
