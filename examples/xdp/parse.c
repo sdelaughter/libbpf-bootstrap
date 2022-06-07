@@ -158,7 +158,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 				 " }, l4_header: {\n"
 				 "\tsport: %u,\n"
 				 "\tdport: %u\n"
-				 " }, payload_size: \n"
+				 " }, payload_size: %u\n"
 				 "}\n",
 		norm_ts,
 		e->packet_size,
