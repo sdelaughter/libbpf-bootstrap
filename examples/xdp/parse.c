@@ -169,7 +169,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 		ip_protocol,
 		e->sport,
 		e->dport,
-		e->payload_size`
+		e->payload_size
 	);
 
 	// printf("%-8f, %-12u, %-8s, %-8s, %03d.%03d.%03d.%03d, %03d.%03d.%03d.%03d\n",
