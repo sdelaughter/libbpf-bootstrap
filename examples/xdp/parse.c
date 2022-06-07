@@ -91,11 +91,11 @@ static void sig_handler(int sig) {
 static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
-	// if(!start_ts) {
-	// 	start_ts = e->ts;
-	// }
+	if(!start_ts) {
+		start_ts = e->ts;
+	}
 
-	// float norm_ts = (e->ts - start_ts) / 1000000000.0;
+	float norm_ts = (e->ts - start_ts) / 1000000000.0;
 
 	unsigned char saddr_bytes[4];
   saddr_bytes[0] = e->ip_saddr & 0xFF;
@@ -147,6 +147,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	}
 
 	printf("{timestamp: %llu,\n"
+				 " norm_ts: %f,\n"
 				 " length: %u,\n"
 				 " l2_header: {\n"
 				 "\tl3_protocol: %s\n"
@@ -164,6 +165,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 				 " payload_size: %u\n"
 				 "}\n",
 		e->ts,
+		norm_ts,
 		e->packet_size,
 		eth_protocol,
 		saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
