@@ -44,8 +44,8 @@ int xdp_pass(struct xdp_md *ctx)
 	// Parse Ethernet Header
   struct ethhdr *eth = data;
   if ((void *)eth + sizeof(*eth) <= data_end) {
-    // e->eth_src = eth->h_source;
-    // e->eth_dst = eth->h_dest;
+    e->eth_src = eth->h_source;
+    e->eth_dst = eth->h_dest;
     e->eth_protocol = bpf_htons(eth->h_proto);
 
     if (e->eth_protocol == ETH_P_IP) {
@@ -107,7 +107,7 @@ int xdp_pass(struct xdp_md *ctx)
           // Parse TCP Header
           struct tcphdr *tcp = (void *)ip + sizeof(*ip);
           if ((void *)tcp + sizeof(*tcp) <= data_end) {
-						e->payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct icmphdr));
+						e->payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct tcphdr));
             e->sport = bpf_ntohs(tcp->source);
             e->dport = bpf_ntohs(tcp->dest);
             // e->tcp_seq = bpf_ntohs(tcp->seq);
