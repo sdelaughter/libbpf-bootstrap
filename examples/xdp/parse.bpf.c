@@ -44,8 +44,8 @@ int xdp_pass(struct xdp_md *ctx)
 	// Parse Ethernet Header
   struct ethhdr *eth = data;
   if ((void *)eth + sizeof(*eth) <= data_end) {
-    e->eth_src = eth->h_source;
-    e->eth_dst = eth->h_dest;
+    // e->eth_src = eth->h_source;
+    // e->eth_dst = eth->h_dest;
     e->eth_protocol = bpf_htons(eth->h_proto);
 
     if (e->eth_protocol == ETH_P_IP) {
