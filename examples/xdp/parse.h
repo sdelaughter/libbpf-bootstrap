@@ -20,7 +20,7 @@ struct event {
 	unsigned char ip_protocol;
 	long ip_saddr;
 	long ip_daddr;
-	unsigned char ip_ttl;
+	unsigned char ttl;
 	unsigned short sport;
 	unsigned short dport;
 	unsigned short payload_size;

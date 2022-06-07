@@ -60,7 +60,7 @@ int xdp_pass(struct xdp_md *ctx)
         // e->flag_df = bpf_ntohs(ip->frag_off & 0x4000);
         // e->flag_mf = bpf_ntohs(ip->frag_off & 0x2000);
         // e->ip_offset = bpf_ntohs(ip->frag_off & 0x1FFF);
-        e->ip_ttl = ip->ttl;
+        e->ttl = ip->ttl;
         e->ip_protocol = ip->protocol;
         // e->ip_checksum = ip->check;
         e->ip_saddr = ip->saddr;
