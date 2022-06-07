@@ -164,7 +164,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 		e->packet_size,
 		eth_protocol,
 		saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
-		daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3])
+		daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3],
 		e->ttl,
 		ip_protocol,
 		e->sport,
