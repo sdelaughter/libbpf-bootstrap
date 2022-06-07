@@ -150,15 +150,18 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 				 " length: %u,\n"
 				 " l2_header: {\n"
 				 "\tl3_protocol: %s\n"
-				 " }, l3_header: {\n"
+				 " },\n"
+				 " l3_header: {\n"
 				 "\tsrc: %u.%u.%u.%u,\n"
 				 "\tdst: %u.%u.%u.%u,\n"
 				 "\tttl: %u,\n"
 			 	 "\tl4_protocol: %s\n"
-				 " }, l4_header: {\n"
+				 " },\n"
+				 " l4_header: {\n"
 				 "\tsport: %u,\n"
 				 "\tdport: %u\n"
-				 " }, payload_size: %u\n"
+				 " },\n"
+				 " payload_size: %u\n"
 				 "}\n",
 		norm_ts,
 		e->packet_size,
