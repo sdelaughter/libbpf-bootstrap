@@ -163,7 +163,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 				 "\tdport: %u\n"
 				 " },\n"
 				 " payload_size: %u\n"
-				 "}\n",
+				 "},\n",
 		e->ts,
 		norm_ts,
 		e->packet_size,
@@ -244,6 +244,7 @@ int main(int argc, char **argv)
 	/* Process events */
 	// printf("%-8s | %-12s | %-8s | %-8s | %-15s | %-15s\n",
 	//        "TIME", "PACKET SIZE", "ETH PROTO", "IP PROTO", "SOURCE", "DEST");
+	printf("[")
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
@@ -259,6 +260,7 @@ int main(int argc, char **argv)
 
 cleanup:
 	/* Clean up */
+	printf("]")
 	ring_buffer__free(rb);
 	parse_bpf__detach(skel);
 	parse_bpf__destroy(skel);
