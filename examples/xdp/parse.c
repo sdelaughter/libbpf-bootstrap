@@ -149,8 +149,6 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	printf("{timestamp: %f,\n"
 				 " length: %u,\n"
 				 " l2_header: {\n"
-				 // "\tsrc: %s,\n"
-				 // "\tdst: %s,\n"
 				 "\tl3_protocol: %s\n"
 				 " }, l3_header: {\n"
 				 "\tsrc: %03d.%03d.%03d.%03d,\n"
@@ -164,8 +162,6 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 				 "}\n",
 		norm_ts,
 		e->packet_size,
-		// e->eth_src,
-		// e->eth_dst,
 		eth_protocol,
 		saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
 		daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3])
