@@ -4,6 +4,7 @@
 #ifndef __PARSE_H
 #define __PARSE_H
 
+#define ETH_ALEN	6
 const unsigned long ETH_P_IP = 2048;
 const unsigned long ETH_P_IPV6 = 34525;
 const unsigned long ETH_P_LLDP = 35020;
@@ -13,6 +14,8 @@ struct event {
 	unsigned long long ts;
 	unsigned char packet_size;
 	unsigned long eth_protocol;
+	unsigned char eth_src[ETH_ALEN];
+	unsigned char eth_dst[ETH_ALEN];
 	unsigned char ip_version;
 	unsigned char ip_protocol;
 	long ip_saddr;

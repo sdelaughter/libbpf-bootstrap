@@ -39,27 +39,16 @@ static int bpf_object__attach_skeleton_xdp(struct bpf_object_skeleton *s, int if
 		struct bpf_program *prog = *s->progs[i].prog;
 		struct bpf_link **link = s->progs[i].link;
 
-		// if (!prog->load)
-		// 	continue;
-		//
-		// /* auto-attaching not supported for this program */
-		// if (!prog->sec_def || !prog->sec_def->attach_fn)
-		// 	continue;
-
 		*link = bpf_program__attach_xdp(prog, ifindex);
 		err = libbpf_get_error(*link);
 		if (err) {
-			// pr_warn("failed to auto-attach program '%s': %d\n",
-			// 	bpf_program__name(prog), err);
 			return err;
 		}
 	}
-
 	return 0;
 }
 
-static error_t parse_arg(int key, char *arg, struct argp_state *state)
-{
+static error_t parse_arg(int key, char *arg, struct argp_state *state) {
 	switch (key) {
 	case 'v':
 		env.verbose = true;
@@ -87,8 +76,7 @@ static const struct argp argp = {
 	.doc = argp_program_doc,
 };
 
-static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
-{
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
 	if (level == LIBBPF_DEBUG && !env.verbose)
 		return 0;
 	return vfprintf(stderr, format, args);
@@ -96,16 +84,14 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
 
 static volatile bool exiting = false;
 
-static void sig_handler(int sig)
-{
+static void sig_handler(int sig) {
 	exiting = true;
 }
 
-static int handle_event(void *ctx, void *data, size_t data_sz)
-{
+static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 
-	if(!start_ts){
+	if(!start_ts) {
 		start_ts = e->ts;
 	}
 
@@ -160,10 +146,41 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 		ip_protocol = l64a(e->ip_protocol);
 	}
 
-	printf("%-8f | %-12u | %-8s | %-8s | %03d.%03d.%03d.%03d | %03d.%03d.%03d.%03d\n",
-	       norm_ts, e->packet_size, eth_protocol, ip_protocol,
-				 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
-				 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
+	printf(
+		"{timestamp: %f,\n"
+		" length: %u,\n"
+		" l2_header: {\n"
+			"\tsrc: %s,\n"
+		 	"\tdst: %s,\n"
+		 	"\tl3_protocol: %s\n"
+		" }, l3_header: {\n"
+			"\tsrc: %03d.%03d.%03d.%03d,\n"
+			"\tdst: %03d.%03d.%03d.%03d,\n"
+			"\tttl: %u,\n"
+	 		"\tl4_protocol: %s\n"
+		" }, l4_header: {\n"
+			"\tsport: %u,\n"
+			"\tdport: %u\n"
+		" }, payload_size: \n"
+		"}\n",
+		norm_ts,
+		e->packet_size,
+		e->eth_src,
+		e->eth_dst,
+		eth_protocol,
+		saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
+		daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3])
+		e->ttl,
+		ip_protocol,
+		e->sport,
+		e->dport,
+		e->payload_size`
+	);
+
+	// printf("%-8f, %-12u, %-8s, %-8s, %03d.%03d.%03d.%03d, %03d.%03d.%03d.%03d\n",
+	//        norm_ts, e->packet_size, eth_protocol, ip_protocol,
+	// 			 saddr_bytes[0], saddr_bytes[1], saddr_bytes[2], saddr_bytes[3],
+	// 			 daddr_bytes[0], daddr_bytes[1], daddr_bytes[2], daddr_bytes[3]);
 
 	return 0;
 }
@@ -225,8 +242,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-8s | %-12s | %-8s | %-8s | %-15s | %-15s\n",
-	       "TIME", "PACKET SIZE", "ETH PROTO", "IP PROTO", "SOURCE", "DEST");
+	// printf("%-8s | %-12s | %-8s | %-8s | %-15s | %-15s\n",
+	//        "TIME", "PACKET SIZE", "ETH PROTO", "IP PROTO", "SOURCE", "DEST");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
