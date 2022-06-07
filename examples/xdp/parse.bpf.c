@@ -72,7 +72,7 @@ int xdp_pass(struct xdp_md *ctx)
           if ((void *)udp + sizeof(*udp) <= data_end) {
             e->sport = udp->source;
             e->dport = udp->dest;
-            e->payload_size = udp->len - 8;
+            e->payload_size = bpf_ntohs(udp->len) - 8;
             // e->l4_checksum = udp->check;
 
 						/*
@@ -87,7 +87,7 @@ int xdp_pass(struct xdp_md *ctx)
           // Parse ICMP Header
           struct icmphdr *icmp = (void *)ip + sizeof(*ip);
           if ((void *)icmp + sizeof(*icmp) <= data_end) {
-						e->payload_size = ip->tot_len - (sizeof(struct iphdr) + sizeof(struct icmphdr));
+						e->payload_size = bpf_ntohs(ip->tot_len) - ((sizeof(struct iphdr) + sizeof(struct icmphdr)));
             // e->icmp_type = icmp->type;
             // e->icmp_code = icmp->code;
             // e->icmp_checksum = icmp->checksum;
@@ -137,7 +137,7 @@ int xdp_pass(struct xdp_md *ctx)
 						*/
           }
         } else {
-					e->payload_size = ip->tot_len - (sizeof(struct iphdr));
+					e->payload_size = bpf_ntohs(ip->tot_len) - (sizeof(struct iphdr));
 					e->sport = 0;
 					e->dport = 0;
 				}
