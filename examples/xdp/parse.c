@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 	/* Process events */
 	// printf("%-8s | %-12s | %-8s | %-8s | %-15s | %-15s\n",
 	//        "TIME", "PACKET SIZE", "ETH PROTO", "IP PROTO", "SOURCE", "DEST");
-	printf("[")
+	printf("[");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
