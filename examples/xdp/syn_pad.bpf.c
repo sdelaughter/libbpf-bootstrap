@@ -63,13 +63,13 @@ static unsigned short csum(unsigned short *addr, unsigned int count) {
 }
 
 /* set ip checksum of a given ip header*/
-void set_ip_csum(struct iphdr* iph){
+static void set_ip_csum(struct iphdr* iph){
 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
   iph->check = 0;
   iph->check = csum((unsigned short*)iph, iph->ihl<<2);
 }
 
-void set_tcp_csum(struct iphdr *iph, unsigned short *ipPayload) {
+static void set_tcp_csum(struct iphdr *iph, unsigned short *ipPayload) {
 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
   register unsigned long sum = 0;
   unsigned short tcpLen = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
