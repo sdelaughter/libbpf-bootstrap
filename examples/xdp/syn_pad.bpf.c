@@ -304,7 +304,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						if (is_syn(tcph)) {
 							found_syn = true;
 							n_tcp_op_bytes = (tcph->doff - 5) * 4;
-							unsigned int padding_needed = //SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
+							unsigned int padding_needed = SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
 							if (padding_needed > 0 && padding_needed < 40) {
 								if (bpf_xdp_adjust_tail(ctx, padding_needed)) {
 										return XDP_PASS;
