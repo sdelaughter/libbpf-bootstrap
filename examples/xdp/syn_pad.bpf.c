@@ -214,7 +214,7 @@ int xdp_pass(struct xdp_md *ctx) {
 								// 	bpf_memset((void * )payload, NO_OP_VAL, padding_needed - 1);
 								// }
 								// bpf_memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
-								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
+								tcph->doff = SYN_PAD_MIN_DOFF;
 								padding_added = padding_needed;
 
 								set_tcp_csum2(iph, tcph);

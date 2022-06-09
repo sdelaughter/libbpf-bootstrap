@@ -7,6 +7,7 @@
 #define __SYN_PAD_H
 
 const unsigned int SYN_PAD_MIN_BYTES = 40;
+const unsigned int SYN_PAD_MIN_DOFF = 15;
 const unsigned char END_OP_VAL = 0;
 const unsigned char NO_OP_VAL = 1;
 
