@@ -16,9 +16,98 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
+// struct tcp_options {
+// 	unsigned char bytes[SYN_PAD_MIN_BYTES];
+// };
+
 struct tcp_options {
-	unsigned char bytes[SYN_PAD_MIN_BYTES];
+	unsigned char byte0;
+	unsigned char byte1;
+	unsigned char byte2;
+	unsigned char byte3;
+	unsigned char byte4;
+	unsigned char byte5;
+	unsigned char byte6;
+	unsigned char byte7;
+	unsigned char byte8;
+	unsigned char byte9;
+	unsigned char byte10;
+	unsigned char byte11;
+	unsigned char byte12;
+	unsigned char byte13;
+	unsigned char byte14;
+	unsigned char byte15;
+	unsigned char byte16;
+	unsigned char byte17;
+	unsigned char byte18;
+	unsigned char byte19;
+	unsigned char byte20;
+	unsigned char byte21;
+	unsigned char byte22;
+	unsigned char byte23;
+	unsigned char byte24;
+	unsigned char byte25;
+	unsigned char byte26;
+	unsigned char byte27;
+	unsigned char byte28;
+	unsigned char byte29;
+	unsigned char byte30;
+	unsigned char byte31;
+	unsigned char byte32;
+	unsigned char byte33;
+	unsigned char byte34;
+	unsigned char byte35;
+	unsigned char byte36;
+	unsigned char byte37;
+	unsigned char byte38;
+	unsigned char byte39;
+	unsigned char byte40;
 };
+
+static __always_inline void zero_op_bytes(struct tcp_options *tcpop) {
+	tcpop->byte0=NO_OP_VAL;
+	tcpop->byte1=NO_OP_VAL;
+	tcpop->byte2=NO_OP_VAL;
+	tcpop->byte3=NO_OP_VAL;
+	tcpop->byte4=NO_OP_VAL;
+	tcpop->byte5=NO_OP_VAL;
+	tcpop->byte6=NO_OP_VAL;
+	tcpop->byte7=NO_OP_VAL;
+	tcpop->byte8=NO_OP_VAL;
+	tcpop->byte9=NO_OP_VAL;
+	tcpop->byte10=NO_OP_VAL;
+	tcpop->byte11=NO_OP_VAL;
+	tcpop->byte12=NO_OP_VAL;
+	tcpop->byte13=NO_OP_VAL;
+	tcpop->byte14=NO_OP_VAL;
+	tcpop->byte15=NO_OP_VAL;
+	tcpop->byte16=NO_OP_VAL;
+	tcpop->byte17=NO_OP_VAL;
+	tcpop->byte18=NO_OP_VAL;
+	tcpop->byte19=NO_OP_VAL;
+	tcpop->byte20=NO_OP_VAL;
+	tcpop->byte21=NO_OP_VAL;
+	tcpop->byte23=NO_OP_VAL;
+	tcpop->byte22=NO_OP_VAL;
+	tcpop->byte24=NO_OP_VAL;
+	tcpop->byte25=NO_OP_VAL;
+	tcpop->byte26=NO_OP_VAL;
+	tcpop->byte27=NO_OP_VAL;
+	tcpop->byte28=NO_OP_VAL;
+	tcpop->byte29=NO_OP_VAL;
+	tcpop->byte30=NO_OP_VAL;
+	tcpop->byte31=NO_OP_VAL;
+	tcpop->byte32=NO_OP_VAL;
+	tcpop->byte33=NO_OP_VAL;
+	tcpop->byte34=NO_OP_VAL;
+	tcpop->byte35=NO_OP_VAL;
+	tcpop->byte36=NO_OP_VAL;
+	tcpop->byte37=NO_OP_VAL;
+	tcpop->byte38=NO_OP_VAL;
+	tcpop->byte39=NO_OP_VAL;
+	tcpop->byte40=END_OP_VAL;
+}
+
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -49,7 +138,7 @@ static __always_inline unsigned short csum(unsigned short *buf, int bufsz) {
         sum += *(unsigned char *)buf;
     }
 
-    sum = (sum & 0xffff) + (sum >> 16);
+    sum = (sum & 0xffff) + (sum >> 16);=NO_OP_VAL
     sum = (sum & 0xffff) + (sum >> 16);
     return ~sum;
 }
@@ -82,7 +171,7 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
 //     tcphdrp->check = 0;
 //     while (tcpLen > 1) {
 //         sum += * ipPayload++;
-//         tcpLen -= 2;
+//         tcpLen -= 2;=NO_OP_VAL
 //     }
 //     //if any bytes left, pad the bytes and add
 //     if(tcpLen > 0 && (void *)ipPayload <= data_end) {
@@ -165,7 +254,7 @@ static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t 
 	// Add the pseudo-header                                        //
 	sum += *(ip_src++);
 	sum += *ip_src;
-	sum += *(ip_dst++);
+	sum += *(ip_dst++);=NO_OP_VAL
 	sum += *ip_dst;
 	sum += bpf_htons(IPPROTO_TCP);
 	sum += bpf_htons(length);
@@ -250,11 +339,12 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
-								#pragma unroll
-								for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
-									tcpop->bytes[i] = NO_OP_VAL;
-								}
-								tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
+								zero_op_bytes(tcpop);
+								// #pragma unroll
+								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
+								// 	tcpop->bytes[i] = NO_OP_VAL;
+								// }
+								// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
 							}
 
 
