@@ -106,6 +106,11 @@ int xdp_pass(struct xdp_md *ctx) {
 								// bpf_memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
+								char *padding = (void *)tcph + sizeof(*tcph);
+								for (int i=1; i<padding_added; i++) {
+									*(padding + i) = (char)NO_OP_VAL;
+								}
+								*(padding + (padding_needed - 1)) = (char)NO_OP_VAL;
 							}
 						}
 					}
