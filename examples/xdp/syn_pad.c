@@ -90,7 +90,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 	if (!env.quiet) {
 		printf("%u, %llu, %llu, %u, %lu\n",
-		e-> status, e->start, e->end, e->padding);
+		e-> status, e->start, e->end, e->padding, e->tcp_len);
 	}
 	return 0;
 }
