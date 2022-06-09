@@ -217,7 +217,7 @@ int xdp_pass(struct xdp_md *ctx) {
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
 
-								set_tcp_csum2(iph, (unsigned short *)tcph);
+								set_tcp_csum2(iph, tcph);
 								set_ip_csum(iph);
 
 								// unsigned char *padding = (void *)tcph + sizeof(*tcph);
