@@ -127,6 +127,7 @@ int xdp_pass(struct xdp_md *ctx) {
 	struct ethhdr *ethh;
 	struct iphdr *iph;
 	struct tcphdr *tcph;
+	unsigned char *padding;
 
 	// Parse Ethernet Header
 	ethh = data;
@@ -148,7 +149,7 @@ int xdp_pass(struct xdp_md *ctx) {
 										return XDP_PASS;
 								}
 								padding_added = padding_needed;
-								unsigned char *padding = tcph + sizeof(*tcph) + n_tcp_op_bytes;
+								padding = (void *)tcph + sizeof(*tcph) + n_tcp_op_bytes;
 							}
 						}
 					}
@@ -172,7 +173,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							tpch->doff = SYN_PAD_MIN_DOFF;
+							tcph->doff = SYN_PAD_MIN_DOFF;
 							if ((void *)padding + padding_added <= data_end) {
 								#pragma unroll
 								for (int i=0; i < padding_added - 1; i++) {
