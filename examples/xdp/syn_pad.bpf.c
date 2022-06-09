@@ -143,7 +143,7 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
 //   tcph->check = (unsigned short)sum;
 // }
 
-uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
+static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
 	const uint16_t *buf=buff;
 	uint16_t *ip_src=(void *)&src_addr;
 	uint16_t *ip_dst=(void *)&dest_addr;
