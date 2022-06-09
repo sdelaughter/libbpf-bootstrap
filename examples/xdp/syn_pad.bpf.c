@@ -41,13 +41,13 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   sum = (sum & 0xffff) + (sum>>16);
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
-
-void bpf_memset(void *s, int c,  unsigned int len){
-    unsigned char* p=s;
-    while(len--) {
-        *p++ = (unsigned char)c;
-    }
-}
+// 
+// void bpf_memset(void *s, int c,  unsigned int len){
+//     unsigned char* p=s;
+//     while(len--) {
+//         *p++ = (unsigned char)c;
+//     }
+// }
 
 // void bpf_memmove_left(void *dst, void * src, unsigned int len){
 // 	for (int i=len-1; i >= 0; i--) {
