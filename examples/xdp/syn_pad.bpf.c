@@ -211,10 +211,12 @@ int xdp_pass(struct xdp_md *ctx) {
 				iph = data + sizeof(*ethh);
 				if ((void *)iph + sizeof(*iph) <= data_end) {
 					if (iph->protocol == IPPROTO_TCP) {
+						iph->tot_len += padding_added;
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
 							tcph->doff = SYN_PAD_MIN_DOFF;
+
 							// if ((void *)padding + padding_added <= data_end) {
 							// 	#pragma unroll
 							// 	for (int i=0; i < padding_added - 1; i++) {
