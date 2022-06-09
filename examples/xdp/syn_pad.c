@@ -102,7 +102,9 @@ int main(int argc, char **argv)
 
 	/* Parse command line arguments */
 	int err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
-	if err return err;
+	if (err) {
+		return err;
+	}
 
 	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
 	/* Set up libbpf errors and debug info callback */
@@ -143,7 +145,7 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	if (!env.quiet) {
-		printf("%s, %s, %s, %s, %s\n", "status", "start", "end", "padding");
+		printf("%s, %s, %s, %s\n", "status", "start", "end", "padding");
 	}
 
 	while (!exiting) {
