@@ -66,13 +66,14 @@ static unsigned short csum(unsigned short *addr, unsigned int count) {
 void set_ip_csum(struct iphdr* iph){
 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
   iph->check = 0;
-  iph->check = compute_checksum((unsigned short*)iph, iph->ihl<<2);
+  iph->check = csum((unsigned short*)iph, iph->ihl<<2);
 }
 
-void set_tcp_csum(struct iphdr *iph, struct tcphdr* tcph) {
+void set_tcp_csum(struct iphdr *iph, unsigned short *ipPayload) {
 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
   register unsigned long sum = 0;
-  unsigned short tcpLen = ntohs(iph->tot_len) - (iph->ihl<<2);
+  unsigned short tcpLen = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
+	struct tcphdr *tcph = (struct tcphdr*)(ipPayload);
   //add the pseudo header
   //the source ip
   sum += (iph->saddr>>16)&0xFFFF;
@@ -176,7 +177,7 @@ int xdp_pass(struct xdp_md *ctx) {
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
 
-								set_tcp_csum(iph, tcph);
+								set_tcp_csum(iph, (unsigned short *)tcph);
 								set_ip_csum(iph);
 
 								// unsigned char *padding = (void *)tcph + sizeof(*tcph);
