@@ -42,7 +42,7 @@ static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_s
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
 
-static __always_inline unsigned short checksum(unsigned short *buf, int bufsz) {
+static __always_inline unsigned short csum(unsigned short *buf, int bufsz) {
     unsigned long sum = 0;
     while (bufsz > 1) {
         sum += *buf;
