@@ -261,11 +261,11 @@ int xdp_pass(struct xdp_md *ctx) {
 							// }
 
 							set_ip_csum(iph);
-							tcp_len = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
-							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
-							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
-							// tcph->check = 0;
-							// tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, iph->saddr, iph->daddr);
+							tcp_len = sizeof(tcph) + SYN_PAD_MIN_BYTES;
+							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
+							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
+							tcph->check = 0;
+							tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, iph->saddr, iph->daddr);
 
 						}
 					}
