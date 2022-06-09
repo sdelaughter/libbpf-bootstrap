@@ -304,14 +304,14 @@ int xdp_pass(struct xdp_md *ctx) {
 						if (is_syn(tcph)) {
 							found_syn = true;
 							n_tcp_op_bytes = (tcph->doff - 5) * 4;
-							unsigned int padding_needed = PAYLOAD_PAD;//SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
-							// if (padding_needed > 0 && padding_needed < 40) {
-								if (bpf_xdp_adjust_tail(ctx, PAYLOAD_PAD)) {
+							unsigned int padding_needed = //SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
+							if (padding_needed > 0 && padding_needed < 40) {
+								if (bpf_xdp_adjust_tail(ctx, padding_needed)) {
 										return XDP_PASS;
 								}
 								padding_added = padding_needed;
 								padding = (void *)tcph + sizeof(*tcph) + n_tcp_op_bytes;
-							// }
+							}
 						}
 					}
 				}
@@ -335,17 +335,17 @@ int xdp_pass(struct xdp_md *ctx) {
 						tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
 							iph->tot_len += bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
-							// tcph->doff = SYN_PAD_MIN_DOFF;
+							tcph->doff = SYN_PAD_MIN_DOFF;
 
-							// struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
-							// if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
-							// 	zero_op_bytes(tcpop);
-							// 	// #pragma unroll
-							// 	// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
-							// 	// 	tcpop->bytes[i] = NO_OP_VAL;
-							// 	// }
-							// 	// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
-							// }
+							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
+							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
+								zero_op_bytes(tcpop);
+								// #pragma unroll
+								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
+								// 	tcpop->bytes[i] = NO_OP_VAL;
+								// }
+								// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
+							}
 
 
 							// set_ip_csum(iph);
