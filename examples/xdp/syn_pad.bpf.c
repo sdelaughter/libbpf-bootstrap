@@ -229,6 +229,62 @@ int xdp_pass(struct xdp_md *ctx) {
 				}
 			}
 		}
+		#if GENERATE_EVENTS
+		if (found_syn) {
+			#if MEASURE_TIME
+				end_time = bpf_ktime_get_ns();
+			#endif
+			struct event *e;
+			e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+			if (!e) {
+				bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
+				return XDP_PASS;
+	if (padding_added > 0) {
+		data = (void *)(long)ctx->data;
+		data_end = (void *)(long)ctx->data_end;
+		packet_size = data_end - data;
+
+		ethh = data;
+		if ((void *)ethh + sizeof(*ethh) <= data_end) {
+			if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
+				// Parse IPv4 Header
+				iph = data + sizeof(*ethh);
+				if ((void *)iph + sizeof(*iph) <= data_end) {
+					if (iph->protocol == IPPROTO_TCP) {
+						// Parse TCP Header
+						tcph = (void *)iph + sizeof(*iph);
+						if ((void *)tcph + sizeof(*tcph) <= data_end) {
+							tpch->doff = SYN_PAD_MIN_DOFF;
+							if ((void *)padding + padding_added <= data_end) {
+								#pragma unroll
+								for (int i=0; i < padding_added - 1; i++) {
+									*((void *)padding + i) = NO_OP_VAL;
+								}
+								*((void *)padding + padding_added - 1) = END_OP_VAL;
+							}
+							set_tcp_csum(iph, tcph);
+							set_ip_csum(iph);
+						}
+					}
+				}
+			}
+			#if GENERATE_EVENTS
+				#if MEASURE_TIME
+					end_time = bpf_ktime_get_ns();
+				#endif
+				struct event *e;
+				e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+				if (!e) {
+					bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
+					return XDP_PASS;
+				}
+				e->status = 0;
+				e->start = start_time;
+				e->end = end_time;
+				e->padding = padding_added;
+				bpf_ringbuf_submit(e, 0);
+			#endif
+
 	}
 	return XDP_PASS;
 }
