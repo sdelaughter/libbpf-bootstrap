@@ -160,10 +160,10 @@ static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t 
 		len -= 2;
 	}
 
-	if ( len & 1 ) {
-		// Add the padding if the packet lenght is odd          //
-		sum += *((uint8_t *)buf);
-	}
+	// if ( len & 1 ) {
+	// 	// Add the padding if the packet lenght is odd          //
+	// 	sum += *((uint8_t *)buf);
+	// }
 
 	// Add the pseudo-header                                        //
 	sum += *(ip_src++);
