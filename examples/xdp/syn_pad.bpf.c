@@ -41,7 +41,7 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   sum = (sum & 0xffff) + (sum>>16);
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
-// 
+//
 // void bpf_memset(void *s, int c,  unsigned int len){
 //     unsigned char* p=s;
 //     while(len--) {
@@ -108,9 +108,9 @@ int xdp_pass(struct xdp_md *ctx) {
 								padding_added = padding_needed;
 								char *padding = (void *)tcph + sizeof(*tcph);
 								for (int i=1; i<padding_added; i++) {
-									*(padding + i) = (char)NO_OP_VAL;
+									padding[i] = (char)NO_OP_VAL;
 								}
-								*(padding + (padding_needed - 1)) = (char)NO_OP_VAL;
+								padding[padding_needed - 1] = (char)NO_OP_VAL;
 							}
 						}
 					}
