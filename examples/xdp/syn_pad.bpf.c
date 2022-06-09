@@ -249,7 +249,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							tcph->doff = SYN_PAD_MIN_DOFF;
 
 							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
-							if (void *)tcpop + sizeof(*tcpop) <= data_end) {
+							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 								#pragma unroll
 								for (int i=n_tcp_op_bytes + 1; i < SYN_PAD_MIN_BYTES - 1; i++) {
 									tcpop->bytes[i] = NO_OP_VAL;
