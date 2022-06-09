@@ -138,7 +138,7 @@ static __always_inline unsigned short csum(unsigned short *buf, int bufsz) {
         sum += *(unsigned char *)buf;
     }
 
-    sum = (sum & 0xffff) + (sum >> 16);=NO_OP_VAL
+    sum = (sum & 0xffff) + (sum >> 16);
     sum = (sum & 0xffff) + (sum >> 16);
     return ~sum;
 }
@@ -254,7 +254,7 @@ static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t 
 	// Add the pseudo-header                                        //
 	sum += *(ip_src++);
 	sum += *ip_src;
-	sum += *(ip_dst++);=NO_OP_VAL
+	sum += *(ip_dst++);
 	sum += *ip_dst;
 	sum += bpf_htons(IPPROTO_TCP);
 	sum += bpf_htons(length);
