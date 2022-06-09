@@ -19,7 +19,8 @@ struct event {
 	unsigned char status;
 	unsigned long long start;
 	unsigned long long end;
-	size_t padding;
+	unsigned int padding;
+	size_t tcp_len;
 };
 
 #endif /* __SYN_PAD_H */

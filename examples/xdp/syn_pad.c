@@ -89,7 +89,7 @@ static void sig_handler(int sig) {
 static int handle_event(void *ctx, void *data, size_t data_sz) {
 	const struct event *e = data;
 	if (!env.quiet) {
-		printf("%u, %llu, %llu, %u\n",
+		printf("%u, %llu, %llu, %u, %lu\n",
 		e-> status, e->start, e->end, e->padding);
 	}
 	return 0;
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 
 	/* Process events */
 	if (!env.quiet) {
-		printf("%s, %s, %s, %s\n", "status", "start", "end", "padding");
+		printf("%s, %s, %s, %s, %s\n", "status", "start", "end", "padding", "tcp_len");
 	}
 
 	while (!exiting) {

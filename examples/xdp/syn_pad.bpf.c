@@ -286,7 +286,8 @@ int xdp_pass(struct xdp_md *ctx) {
 			e->status = 0;
 			e->start = start_time;
 			e->end = end_time;
-			e->padding = tcp_len;
+			e->padding = padding_added;
+			e->tcp_len = tcp_len;
 			bpf_ringbuf_submit(e, 0);
 		#endif
 
