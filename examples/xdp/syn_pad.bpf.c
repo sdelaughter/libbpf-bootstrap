@@ -107,6 +107,8 @@ int xdp_pass(struct xdp_md *ctx) {
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
 								unsigned char *padding = (void *)tcph + sizeof(*tcph);
+
+								#pragma unroll
 								for (size_t i = 0; i < padding_added; i++) {
 									padding[i] = NO_OP_VAL;
 								}
