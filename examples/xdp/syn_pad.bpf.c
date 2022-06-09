@@ -124,17 +124,20 @@ int xdp_pass(struct xdp_md *ctx) {
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
 	int packet_size = data_end - data;
+	struct ethhdr *ethh;
+	struct iphdr *iph;
+	struct tcphdr *tcph;
 
 	// Parse Ethernet Header
-	struct ethhdr *ethh = data;
+	ethh = data;
 	if ((void *)ethh + sizeof(*ethh) <= data_end) {
 		if (bpf_htons(ethh->h_proto) == ETH_P_IP) {
 			// Parse IPv4 Header
-			struct iphdr *iph = data + sizeof(*ethh);
+			iph = data + sizeof(*ethh);
 			if ((void *)iph + sizeof(*iph) <= data_end) {
 				if (iph->protocol == IPPROTO_TCP) {
 					// Parse TCP Header
-					struct tcphdr *tcph = (void *)iph + sizeof(*iph);
+					tcph = (void *)iph + sizeof(*iph);
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if (is_syn(tcph)) {
 							found_syn = true;
