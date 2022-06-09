@@ -34,13 +34,13 @@ static __always_inline bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
-  if (old_ack_seq == tcph->ack_seq) return;
-  __sum16 sum = old_ack_seq + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
-  sum += bpf_ntohs(tcph->check);
-  sum = (sum & 0xffff) + (sum>>16);
-  tcph->check = bpf_htons(sum + (sum>>16) + 1);
-}
+// static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_doff) {
+//   if (old_doff == tcph->ack_seq) return;
+//   __sum16 sum = old_doff + (~bpf_ntohs(*(unsigned short *)&tcph->doff) & 0xffff);
+//   sum += bpf_ntohs(tcph->check);
+//   sum = (sum & 0xffff) + (sum>>16);
+//   tcph->check = bpf_htons(sum + (sum>>16) + 1);
+// }
 
 static __always_inline unsigned short csum(unsigned short *buf, int bufsz) {
     unsigned long sum = 0;
@@ -259,6 +259,8 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							set_ip_csum(iph);
 							size_t tcp_len = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
+							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
+							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
 							tcph->check = 0;
 							tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, iph->saddr, iph->daddr);
 
