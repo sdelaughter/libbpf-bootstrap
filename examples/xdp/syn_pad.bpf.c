@@ -252,13 +252,11 @@ int xdp_pass(struct xdp_md *ctx) {
 						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES <= data_end) {
 							iph->tot_len += padding_added;
 							tcph->doff = SYN_PAD_MIN_DOFF;
-							// if ((void *)padding + padding_added <= data_end) {
-							// 	#pragma unroll
-							// 	for (int i=0; i < padding_added - 1; i++) {
-							// 		*((unsigned char *)padding + i) = NO_OP_VAL;
-							// 	}
-							// 	*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
-							// }
+							#pragma unroll
+							for (int i=0; i < padding_added - 1; i++) {
+								*((unsigned char *)padding + i) = NO_OP_VAL;
+							}
+							*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
 
 							set_ip_csum(iph);
 							tcp_len = sizeof(*tcph) + SYN_PAD_MIN_BYTES;
