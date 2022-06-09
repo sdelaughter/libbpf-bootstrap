@@ -207,7 +207,7 @@ int xdp_pass(struct xdp_md *ctx) {
 					if (iph->protocol == IPPROTO_TCP) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
-						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES <= data_end) {
+						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES < data_end) {
 							iph->tot_len += padding_added;
 							tcph->doff = SYN_PAD_MIN_DOFF;
 							// if ((void *)padding + padding_added <= data_end) {
