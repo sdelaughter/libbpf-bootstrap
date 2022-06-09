@@ -6,6 +6,9 @@
 #ifndef __SYN_PAD_H
 #define __SYN_PAD_H
 
+#define GENERATE_EVENTS 1
+#define MEASURE_TIME 1
+
 const unsigned int SYN_PAD_MIN_BYTES = 40;
 const unsigned int SYN_PAD_MIN_DOFF = 15;
 const unsigned char END_OP_VAL = 0;
