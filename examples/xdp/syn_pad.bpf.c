@@ -225,7 +225,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// 	*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
 							// }
 							// set_tcp_csum(iph, (unsigned short *)tcph);
-							// set_ip_csum(iph);
+							set_ip_csum(iph);
 						}
 					}
 				}
