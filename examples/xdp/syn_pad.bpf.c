@@ -334,7 +334,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							iph->tot_len += bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
+							iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 							tcph->doff = SYN_PAD_MIN_DOFF;
 
 							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
