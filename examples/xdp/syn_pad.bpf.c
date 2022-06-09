@@ -341,7 +341,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 								zero_op_bytes(tcpop);
-								did_zero=tcpop->bytes[0];
+								did_zero=tcpop->byte0;
 								// #pragma unroll
 								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
 								// 	tcpop->bytes[i] = NO_OP_VAL;
