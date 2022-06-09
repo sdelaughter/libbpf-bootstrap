@@ -160,8 +160,10 @@ static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t 
 		len -= 2;
 	}
 
+	// Don't need this, the padding we add already ensures the length won't be odd
+
 	// if ( len & 1 ) {
-	// 	// Add the padding if the packet lenght is odd          //
+	// 	// Add the padding if the packet length is odd          //
 	// 	sum += *((uint8_t *)buf);
 	// }
 
@@ -259,10 +261,10 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							set_ip_csum(iph);
 							size_t tcp_len = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
-							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
-							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
-							tcph->check = 0;
-							tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, iph->saddr, iph->daddr);
+							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
+							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
+							// tcph->check = 0;
+							// tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, iph->saddr, iph->daddr);
 
 						}
 					}
@@ -283,7 +285,7 @@ int xdp_pass(struct xdp_md *ctx) {
 			e->status = 0;
 			e->start = start_time;
 			e->end = end_time;
-			e->padding = padding_added;
+			e->padding = tcp_len;
 			bpf_ringbuf_submit(e, 0);
 		#endif
 
