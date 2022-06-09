@@ -66,7 +66,7 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
   iph->check = csum((unsigned short*)iph, iph->ihl<<2);
 }
 
-static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipPayload) {
+static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipPayload, void *data_end) {
     register unsigned long sum = 0;
     unsigned short tcpLen = bpf_ntohs(pIph->tot_len) - (pIph->ihl<<2);
     struct tcphdr *tcphdrp = (struct tcphdr*)(ipPayload);
@@ -90,7 +90,7 @@ static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipP
         tcpLen -= 2;
     }
     //if any bytes left, pad the bytes and add
-    if(tcpLen > 0) {
+    if(tcpLen > 0 && (void *)ipPayload <= data_end) {
         //printf("+++++++++++padding, %dn", tcpLen);
         sum += ((*ipPayload)&bpf_htons(0xFF00));
     }
@@ -207,7 +207,7 @@ int xdp_pass(struct xdp_md *ctx) {
 					if (iph->protocol == IPPROTO_TCP) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
-						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES < data_end) {
+						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES <= data_end) {
 							iph->tot_len += padding_added;
 							tcph->doff = SYN_PAD_MIN_DOFF;
 							// if ((void *)padding + padding_added <= data_end) {
@@ -219,7 +219,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// }
 
 							set_ip_csum(iph);
-							set_tcp_csum(iph, (unsigned short *)tcph);
+							set_tcp_csum(iph, (unsigned short *)tcph, data_end);
 
 						}
 					}
