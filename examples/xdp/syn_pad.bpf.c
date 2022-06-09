@@ -161,6 +161,7 @@ int xdp_pass(struct xdp_md *ctx) {
 	struct ethhdr *ethh;
 	struct iphdr *iph;
 	struct tcphdr *tcph;
+	int n_tcp_op_bytes;
 	unsigned char *padding;
 
 	// Parse Ethernet Header
@@ -176,7 +177,7 @@ int xdp_pass(struct xdp_md *ctx) {
 					if ((void *)tcph + sizeof(*tcph) <= data_end) {
 						if (is_syn(tcph)) {
 							found_syn = true;
-							int n_tcp_op_bytes = (tcph->doff - 5) * 4;
+							n_tcp_op_bytes = (tcph->doff - 5) * 4;
 							unsigned int padding_needed = SYN_PAD_MIN_BYTES - n_tcp_op_bytes;
 							if (padding_needed > 0 && padding_needed < 40) {
 								if (bpf_xdp_adjust_tail(ctx, padding_needed)) {
@@ -204,12 +205,11 @@ int xdp_pass(struct xdp_md *ctx) {
 				iph = data + sizeof(*ethh);
 				if ((void *)iph + sizeof(*iph) <= data_end) {
 					if (iph->protocol == IPPROTO_TCP) {
-						iph->tot_len += padding_added;
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
-						if ((void *)tcph + sizeof(*tcph) <= data_end) {
+						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES <= data_end) {
+							iph->tot_len += padding_added;
 							tcph->doff = SYN_PAD_MIN_DOFF;
-
 							// if ((void *)padding + padding_added <= data_end) {
 							// 	#pragma unroll
 							// 	for (int i=0; i < padding_added - 1; i++) {
@@ -217,6 +217,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// 	}
 							// 	*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
 							// }
+
 							set_ip_csum(iph);
 							set_tcp_csum(iph, (unsigned short *)tcph);
 
