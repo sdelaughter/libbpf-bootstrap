@@ -42,26 +42,21 @@ static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_s
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
 
-/* Compute checksum for count bytes starting at addr, using one's complement of one's complement sum*/
-static __always_inline unsigned short csum(unsigned short *addr, unsigned int count) {
-  register unsigned long sum = 0;
-	#pragma unroll
-  while (count > 1) {
-    sum += * addr++;
-    count -= 2;
-  }
-  //if any bytes left, pad the bytes and add
-  if(count > 0) {
-    sum += ((*addr)&bpf_htons(0xFF00));
-  }
-  //Fold sum to 16 bits: add carrier to result
-	#pragma unroll
-  while (sum>>16) {
-      sum = (sum & 0xffff) + (sum >> 16);
-  }
-  //one's complement
-  sum = ~sum;
-  return ((unsigned short)sum);
+static __always_inline unsigned short checksum(unsigned short *buf, int bufsz) {
+    unsigned long sum = 0;
+    while (bufsz > 1) {
+        sum += *buf;
+        buf++;
+        bufsz -= 2;
+    }
+
+    if (bufsz == 1) {
+        sum += *(unsigned char *)buf;
+    }
+
+    sum = (sum & 0xffff) + (sum >> 16);
+    sum = (sum & 0xffff) + (sum >> 16);
+    return ~sum;
 }
 
 /* set ip checksum of a given ip header*/
@@ -90,7 +85,6 @@ static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipP
     //add the IP payload
     //initialize checksum to 0
     tcphdrp->check = 0;
-		#pragma unroll
     while (tcpLen > 1) {
         sum += * ipPayload++;
         tcpLen -= 2;
@@ -101,7 +95,6 @@ static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipP
         sum += ((*ipPayload)&bpf_htons(0xFF00));
     }
       //Fold 32-bit sum to 16 bits: add carrier to result
-			#pragma unroll
       while (sum>>16) {
           sum = (sum & 0xffff) + (sum >> 16);
       }
@@ -224,8 +217,9 @@ int xdp_pass(struct xdp_md *ctx) {
 							// 	}
 							// 	*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
 							// }
-							// set_tcp_csum(iph, (unsigned short *)tcph);
 							set_ip_csum(iph);
+							set_tcp_csum(iph, (unsigned short *)tcph);
+
 						}
 					}
 				}
