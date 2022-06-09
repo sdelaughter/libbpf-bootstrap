@@ -177,9 +177,9 @@ int xdp_pass(struct xdp_md *ctx) {
 							if ((void *)padding + padding_added <= data_end) {
 								#pragma unroll
 								for (int i=0; i < padding_added - 1; i++) {
-									*((void *)padding + i) = NO_OP_VAL;
+									*((unsigned char *)padding + i) = NO_OP_VAL;
 								}
-								*((void *)padding + padding_added - 1) = END_OP_VAL;
+								*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
 							}
 							set_tcp_csum(iph, tcph);
 							set_ip_csum(iph);
