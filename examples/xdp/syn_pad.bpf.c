@@ -272,7 +272,7 @@ static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
 	bool found_syn = false;
-	bool did_zero;
+	unsigned char did_zero = 0;
 	unsigned int padding_added = 0;
 
 	unsigned long long start_time;
@@ -341,7 +341,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 								zero_op_bytes(tcpop);
-								did_zero=true;
+								did_zero=1;
 								// #pragma unroll
 								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
 								// 	tcpop->bytes[i] = NO_OP_VAL;
@@ -372,7 +372,7 @@ int xdp_pass(struct xdp_md *ctx) {
 				bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
 				return XDP_PASS;
 			}
-			e->status = (unsigned char)did_zero;
+			e->status = did_zero;
 			e->start = start_time;
 			e->end = end_time;
 			e->padding = padding_added;
