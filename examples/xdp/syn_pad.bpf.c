@@ -204,6 +204,7 @@ int xdp_pass(struct xdp_md *ctx) {
 	struct tcphdr *tcph;
 	int n_tcp_op_bytes;
 	unsigned char *padding;
+	size_t tcp_len;
 
 	// Parse Ethernet Header
 	ethh = data;
@@ -260,7 +261,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// }
 
 							set_ip_csum(iph);
-							size_t tcp_len = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
+							tcp_len = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
 							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
 							// tcph->check = 0;
