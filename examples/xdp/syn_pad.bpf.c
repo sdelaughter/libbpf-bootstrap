@@ -272,7 +272,6 @@ static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
 	bool found_syn = false;
-	bood did_zero = false;
 	unsigned int padding_added = 0;
 
 	unsigned long long start_time;
