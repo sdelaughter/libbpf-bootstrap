@@ -16,14 +16,9 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
-struct message_digest {
-	unsigned long saddr;
-	unsigned long daddr;
-	unsigned short sport;
-	unsigned short dport;
-	unsigned long seq;
-	unsigned long ack_seq;
-};
+struct tcp_options {
+	unsigned char bytes[SYN_PAD_MIN_BYTES];
+}
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -121,7 +116,7 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
 //
 //   //add the IP payload
 //   //initialize checksum to 0
-//   tcph->check = 0;
+//   tcph->check = 0;padding_added
 //   while (tcpLen > 1) {
 // 	  sum += * (unsigned long *)tcph++;
 // 	  tcpLen -= 2;
@@ -201,7 +196,7 @@ int xdp_pass(struct xdp_md *ctx) {
 	int packet_size = data_end - data;
 	struct ethhdr *ethh;
 	struct iphdr *iph;
-	struct tcphdr *tcph;
+	struct tcphdr *tcph;padding_added
 	int n_tcp_op_bytes;
 	unsigned char *padding;
 	size_t tcp_len;
@@ -249,14 +244,19 @@ int xdp_pass(struct xdp_md *ctx) {
 					if (iph->protocol == IPPROTO_TCP) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
-						if ((void *)tcph + sizeof(*tcph) + SYN_PAD_MIN_BYTES <= data_end) {
+						if ((void *)tcph + sizeof(*tcph) <= data_end) {
 							iph->tot_len += padding_added;
 							tcph->doff = SYN_PAD_MIN_DOFF;
-							#pragma unroll
-							for (int i=0; i < padding_added - 1; i++) {
-								*((unsigned char *)padding + i) = NO_OP_VAL;
+
+							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
+							if (void *)tcpop + sizeof(*tcpop) <= data_end) {
+								#pragma unroll
+								for (int i=n_tcp_op_bytes + 1; i < SYN_PAD_MIN_BYTES - 1; i++) {
+									tcpop->bytes[i] = NO_OP_VAL;
+								}
+								tcpop->bytes[i] = END_OP_VAL;
 							}
-							*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
+
 
 							set_ip_csum(iph);
 							tcp_len = sizeof(*tcph) + SYN_PAD_MIN_BYTES;
