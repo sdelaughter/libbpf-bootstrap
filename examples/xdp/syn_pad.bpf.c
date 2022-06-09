@@ -341,7 +341,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							struct tcp_options *tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 								zero_op_bytes(tcpop);
-								did_zero=1;
+								did_zero=tcpop->bytes[0];
 								// #pragma unroll
 								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
 								// 	tcpop->bytes[i] = NO_OP_VAL;
@@ -351,7 +351,7 @@ int xdp_pass(struct xdp_md *ctx) {
 
 
 							// set_ip_csum(iph);
-							// tcp_len = sizeof(*tcph) + SYN_PAD_MIN_BYTES;
+							tcp_len = sizeof(*tcph) + SYN_PAD_MIN_BYTES;
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
 							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
 							// tcph->check = 0;
