@@ -30,11 +30,11 @@ struct {
 	__uint(max_entries, 256 * 1024);
 } rb SEC(".maps");
 
-static bool is_syn(struct tcphdr* tcph) {
+static __always_inline bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
+static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   if (old_ack_seq == tcph->ack_seq) return;
   __sum16 sum = old_ack_seq + (~bpf_ntohs(*(unsigned short *)&tcph->ack_seq) & 0xffff);
   sum += bpf_ntohs(tcph->check);
@@ -43,7 +43,7 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
 }
 
 /* Compute checksum for count bytes starting at addr, using one's complement of one's complement sum*/
-static unsigned short csum(unsigned short *addr, unsigned int count) {
+static __always_inline unsigned short csum(unsigned short *addr, unsigned int count) {
   register unsigned long sum = 0;
   while (count > 1) {
     sum += * addr++;
@@ -63,13 +63,13 @@ static unsigned short csum(unsigned short *addr, unsigned int count) {
 }
 
 /* set ip checksum of a given ip header*/
-static void set_ip_csum(struct iphdr* iph){
+static __always_inline void set_ip_csum(struct iphdr* iph){
 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
   iph->check = 0;
   iph->check = csum((unsigned short*)iph, iph->ihl<<2);
 }
 
-static void set_tcp_csum(struct iphdr *iph, unsigned short *ipPayload) {
+static __always_inline void set_tcp_csum(struct iphdr *iph, unsigned short *ipPayload) {
 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
   register unsigned long sum = 0;
   unsigned short tcpLen = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
