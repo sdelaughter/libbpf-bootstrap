@@ -196,7 +196,8 @@ int xdp_pass(struct xdp_md *ctx) {
 	int packet_size = data_end - data;
 	struct ethhdr *ethh;
 	struct iphdr *iph;
-	struct tcphdr *tcph;padding_added
+	struct tcphdr *tcph;
+	unsigned int padding_added;
 	int n_tcp_op_bytes;
 	unsigned char *padding;
 	size_t tcp_len;
