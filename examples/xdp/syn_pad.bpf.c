@@ -143,8 +143,7 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
 //   tcph->check = (unsigned short)sum;
 // }
 
-void set_tcp_csum(const void *buff, size_t len, void *src_addr, void *dest_addr) {
-	(struct tcphdr *)buff->check = 0;
+uint16_t tcp_csum(const void *buff, size_t len, void *src_addr, void *dest_addr) {
 	const uint16_t *buf=buff;
 	uint16_t *ip_src=&src_addr;
 	uint16_t *ip_dst=&dest_addr;
@@ -180,7 +179,7 @@ void set_tcp_csum(const void *buff, size_t len, void *src_addr, void *dest_addr)
 	}
 
 	// Return the one's complement of sum                           //
-	(struct tcphdr *)buff->check = ( (uint16_t)(~sum)  );
+	return ( (uint16_t)(~sum)  );
 }
 
 
@@ -260,7 +259,8 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							set_ip_csum(iph);
 							size_t tcp_len = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
-							set_tcp_csum((unsigned short *)tcph, tcp_len, (void *)iph->saddr, (void *) iph->daddr);
+							tcph->check = 0;
+							tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, (void *)iph->saddr, (void *) iph->daddr);
 
 						}
 					}
