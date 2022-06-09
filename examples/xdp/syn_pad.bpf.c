@@ -18,7 +18,7 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 struct tcp_options {
 	unsigned char bytes[SYN_PAD_MIN_BYTES];
-}
+};
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -197,7 +197,6 @@ int xdp_pass(struct xdp_md *ctx) {
 	struct ethhdr *ethh;
 	struct iphdr *iph;
 	struct tcphdr *tcph;
-	unsigned int padding_added;
 	int n_tcp_op_bytes;
 	unsigned char *padding;
 	size_t tcp_len;
