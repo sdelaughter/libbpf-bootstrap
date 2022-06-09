@@ -69,45 +69,82 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
   iph->check = csum((unsigned short*)iph, iph->ihl<<2);
 }
 
-static __always_inline void set_tcp_csum(struct iphdr *iph, struct tcphdr *tcph) {
-	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
-  register unsigned long sum = 0;
-  unsigned short tcpLen = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
-  //add the pseudo header
-  //the source ip
-  sum += (iph->saddr>>16)&0xFFFF;
-  sum += (iph->saddr)&0xFFFF;
-  //the dest ip
-  sum += (iph->daddr>>16)&0xFFFF;
-  sum += (iph->daddr)&0xFFFF;
-  //protocol and reserved: 6
-  sum += bpf_htons(IPPROTO_TCP);
-  //the length
-  sum += bpf_htons(tcpLen);
+static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipPayload) {
+    register unsigned long sum = 0;
+    unsigned short tcpLen = ntohs(pIph->tot_len) - (pIph->ihl<<2);
+    struct tcphdr *tcphdrp = (struct tcphdr*)(ipPayload);
+    //add the pseudo header
+    //the source ip
+    sum += (pIph->saddr>>16)&0xFFFF;
+    sum += (pIph->saddr)&0xFFFF;
+    //the dest ip
+    sum += (pIph->daddr>>16)&0xFFFF;
+    sum += (pIph->daddr)&0xFFFF;
+    //protocol and reserved: 6
+    sum += htons(IPPROTO_TCP);
+    //the length
+    sum += htons(tcpLen);
 
-  //add the IP payload
-  //initialize checksum to 0
-  tcph->check = 0;
-  while (tcpLen > 1) {
-	  sum += * (unsigned long *)tcph++;
-	  tcpLen -= 2;
-  }
-
-	//if any bytes left, pad the bytes and add
-  if(tcpLen > 0) {
-    //printf("+++++++++++padding, %dn", tcpLen);
-    sum += ((*(unsigned long *)tcph)&bpf_htons(0xFF00));
-  }
-
-  //Fold 32-bit sum to 16 bits: add carrier to result
-  while (sum>>16) {
-    sum = (sum & 0xffff) + (sum >> 16);
-  }
-  sum = ~sum;
-
-	//set computation result
-  tcph->check = (unsigned short)sum;
+    //add the IP payload
+    //initialize checksum to 0
+    tcphdrp->check = 0;
+    while (tcpLen > 1) {
+        sum += * ipPayload++;
+        tcpLen -= 2;
+    }
+    //if any bytes left, pad the bytes and add
+    if(tcpLen > 0) {
+        //printf("+++++++++++padding, %dn", tcpLen);
+        sum += ((*ipPayload)&htons(0xFF00));
+    }
+      //Fold 32-bit sum to 16 bits: add carrier to result
+      while (sum>>16) {
+          sum = (sum & 0xffff) + (sum >> 16);
+      }
+      sum = ~sum;
+    //set computation result
+    tcphdrp->check = (unsigned short)sum;
 }
+
+// static __always_inline void set_tcp_csum(struct iphdr *iph, struct tcphdr *tcph) {
+// 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
+//   register unsigned long sum = 0;
+//   unsigned short tcpLen = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
+//   //add the pseudo header
+//   //the source ip
+//   sum += (iph->saddr>>16)&0xFFFF;
+//   sum += (iph->saddr)&0xFFFF;
+//   //the dest ip
+//   sum += (iph->daddr>>16)&0xFFFF;
+//   sum += (iph->daddr)&0xFFFF;
+//   //protocol and reserved: 6
+//   sum += bpf_htons(IPPROTO_TCP);
+//   //the length
+//   sum += bpf_htons(tcpLen);
+//
+//   //add the IP payload
+//   //initialize checksum to 0
+//   tcph->check = 0;
+//   while (tcpLen > 1) {
+// 	  sum += * (unsigned long *)tcph++;
+// 	  tcpLen -= 2;
+//   }
+//
+// 	//if any bytes left, pad the bytes and add
+//   if(tcpLen > 0) {
+//     //printf("+++++++++++padding, %dn", tcpLen);
+//     sum += ((*(unsigned long *)tcph)&bpf_htons(0xFF00));
+//   }
+//
+//   //Fold 32-bit sum to 16 bits: add carrier to result
+//   while (sum>>16) {
+//     sum = (sum & 0xffff) + (sum >> 16);
+//   }
+//   sum = ~sum;
+//
+// 	//set computation result
+//   tcph->check = (unsigned short)sum;
+// }
 
 
 SEC("xdp")
@@ -181,7 +218,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// 	}
 							// 	*((unsigned char *)padding + padding_added - 1) = END_OP_VAL;
 							// }
-							set_tcp_csum(iph, tcph);
+							set_tcp_csum(iph, (unsigned short *)tcph);
 							set_ip_csum(iph);
 						}
 					}
