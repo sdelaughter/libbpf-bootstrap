@@ -137,7 +137,7 @@ static __always_inline void set_tcp_csum2(struct iphdr *iph, struct tcphdr *tcph
 	//if any bytes left, pad the bytes and add
   if(tcpLen > 0) {
     //printf("+++++++++++padding, %dn", tcpLen);
-    sum += ((*(unsigned short *)tcph))&bpf_htons(0xFF00));
+    sum += ((*(unsigned short *)tcph)&bpf_htons(0xFF00));
   }
 
   //Fold 32-bit sum to 16 bits: add carrier to result
