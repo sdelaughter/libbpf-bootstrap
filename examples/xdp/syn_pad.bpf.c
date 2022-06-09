@@ -41,6 +41,75 @@ static void update_tcp_csum(struct tcphdr* tcph, __u32 old_ack_seq) {
   sum = (sum & 0xffff) + (sum>>16);
   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 }
+
+/* Compute checksum for count bytes starting at addr, using one's complement of one's complement sum*/
+static unsigned short csum(unsigned short *addr, unsigned int count) {
+  register unsigned long sum = 0;
+  while (count > 1) {
+    sum += * addr++;
+    count -= 2;
+  }
+  //if any bytes left, pad the bytes and add
+  if(count > 0) {
+    sum += ((*addr)&bpf_htons(0xFF00));
+  }
+  //Fold sum to 16 bits: add carrier to result
+  while (sum>>16) {
+      sum = (sum & 0xffff) + (sum >> 16);
+  }
+  //one's complement
+  sum = ~sum;
+  return ((unsigned short)sum);
+}
+
+/* set ip checksum of a given ip header*/
+void set_ip_csum(struct iphdr* iph){
+	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
+  iph->check = 0;
+  iph->check = compute_checksum((unsigned short*)iph, iph->ihl<<2);
+}
+
+void set_tcp_csum(struct iphdr *iph, struct tcphdr* tcph) {
+	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
+  register unsigned long sum = 0;
+  unsigned short tcpLen = ntohs(iph->tot_len) - (iph->ihl<<2);
+  //add the pseudo header
+  //the source ip
+  sum += (iph->saddr>>16)&0xFFFF;
+  sum += (iph->saddr)&0xFFFF;
+  //the dest ip
+  sum += (iph->daddr>>16)&0xFFFF;
+  sum += (iph->daddr)&0xFFFF;
+  //protocol and reserved: 6
+  sum += bpf_htons(IPPROTO_TCP);
+  //the length
+  sum += bpf_htons(tcpLen);
+
+  //add the IP payload
+  //initialize checksum to 0
+  tcph->check = 0;
+  while (tcpLen > 1) {
+	  sum += * ipPayload++;
+	  tcpLen -= 2;
+  }
+
+	//if any bytes left, pad the bytes and add
+  if(tcpLen > 0) {
+    //printf("+++++++++++padding, %dn", tcpLen);
+    sum += ((*ipPayload)&bpf_htons(0xFF00));
+  }
+
+  //Fold 32-bit sum to 16 bits: add carrier to result
+  while (sum>>16) {
+    sum = (sum & 0xffff) + (sum >> 16);
+  }
+  sum = ~sum;
+
+	//set computation result
+  tcph->check = (unsigned short)sum;
+}
+
+
 //
 // void bpf_memset(void *s, int c,  unsigned int len){
 //     unsigned char* p=s;
@@ -106,13 +175,17 @@ int xdp_pass(struct xdp_md *ctx) {
 								// bpf_memset((void * )payload + (padding_needed - 1), END_OP_VAL, 1);
 								tcph->doff = (SYN_PAD_MIN_BYTES/4) + 5;
 								padding_added = padding_needed;
-								unsigned char *padding = (void *)tcph + sizeof(*tcph);
 
-								#pragma unroll
-								for (size_t i = 0; i < padding_added; i++) {
-									padding[i] = NO_OP_VAL;
-								}
-								padding[padding_needed - 1] = NO_OP_VAL;
+								set_tcp_csum(iph, tcph);
+								set_ip_csum(iph);
+
+								// unsigned char *padding = (void *)tcph + sizeof(*tcph);
+								//
+								// #pragma unroll
+								// for (size_t i = 0; i < padding_added; i++) {
+								// 	padding[i] = NO_OP_VAL;
+								// }
+								// padding[padding_needed - 1] = NO_OP_VAL;
 							}
 						}
 					}
