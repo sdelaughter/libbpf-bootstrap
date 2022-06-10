@@ -234,8 +234,8 @@ static __always_inline void update_ip_tot_len(struct iphdr* iph, uint16_t new_va
 
 static __always_inline void update_tcp_doff(struct tcphdr* tcph, uint16_t new_val) {
 	void *p = (void *)tcph + 12;
-	update_ip_csum_byte(iph, p, *(uint8_t *)(&new_val));
-	update_ip_csum_byte(iph, p+1, *((uint8_t *)(&new_val)+1));
+	update_tcp_csum_byte(tcph, p, *(uint8_t *)(&new_val));
+	update_tcp_csum_byte(tcph, p+1, *((uint8_t *)(&new_val)+1));
 	// unsigned long sum;
 	// unsigned short old;
 	// old = (unsigned short) tcph->doff;
