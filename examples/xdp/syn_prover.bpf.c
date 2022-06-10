@@ -7,6 +7,14 @@
 #include <bpf/bpf_core_read.h>
 #include "syn_prover.h"
 
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/crypto.h>
+#include <linux/err.h>
+#include <linux/scatterlist.h>
+
+
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 // struct {
@@ -34,6 +42,41 @@ struct {
 #define get16bits(d) ((((unsigned long)(((const unsigned char *)(d))[1])) << 8)\
                        +(unsigned long)(((const unsigned char *)(d))[0]) )
 #endif
+
+
+#define SHA1_LENGTH     20
+
+static int __init sha1_init(void)
+{
+    struct scatterlist sg;
+    struct crypto_hash *tfm;
+    struct hash_desc desc;
+    unsigned char output[SHA1_LENGTH];
+    unsigned char buf[10];
+    int i;
+
+    memset(buf, 'A', 10);
+    memset(output, 0x00, SHA1_LENGTH);
+
+    tfm = crypto_alloc_hash("sha1", 0, CRYPTO_ALG_ASYNC);
+
+    desc.tfm = tfm;
+    desc.flags = 0;
+
+    sg_init_one(&sg, buf, 10);
+    crypto_hash_init(&desc);
+
+    crypto_hash_update(&desc, &sg, 10);
+    crypto_hash_final(&desc, output);
+
+    for (i = 0; i < 20; i++) {
+        printk(KERN_ERR "%d-%d\n", output[i], i);
+    }
+
+    crypto_free_hash(tfm);
+
+    return 0;
+}
 
 static unsigned long SuperFastHash (const char* data, int len) {
 	uint32_t hash = len, tmp;
@@ -169,7 +212,6 @@ int xdp_pass(struct xdp_md *ctx) {
 							e->start = start_time;
 
 							do_syn_pow(iph, tcph, e);
-							// iph->ttl += 1;
 							update_tcp_csum(tcph, 0);
 
 							e->end = bpf_ktime_get_ns();
