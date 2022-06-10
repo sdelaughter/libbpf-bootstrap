@@ -464,7 +464,7 @@ int xdp_pass(struct xdp_md *ctx) {
 						  // iph->check = compute_checksum(iph);
 							// update_ip_csum(iph, old_tot_len);
 
-							tcp_len = sizeof(*tcph);
+							tcp_len = sizeof(*tcph) + n_tcp_op_bytes + PAYLOAD_PAD;
 							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
 							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
 							tcph->check = 0;
