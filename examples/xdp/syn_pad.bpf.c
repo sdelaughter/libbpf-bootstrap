@@ -157,7 +157,7 @@ static __always_inline bool is_syn(struct tcphdr* tcph) {
 //     return bpf_htons(~acc);
 // }
 
-static __always_inline unsigned short csum(unsigned short *buf, int bufsz) {
+static __always_inline uint16_t csum(unsigned short *buf, int bufsz) {
     unsigned long sum = 0;
     while (bufsz > 1) {
         sum += *buf;
