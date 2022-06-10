@@ -207,10 +207,10 @@ static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint
 	iph->check = bpf_htons(sum + (sum>>16));
 }
 
-static __always_inline void update_ip_tot_len(struct iphdr* iph, uint8_t* new_val) {
+static __always_inline void update_ip_tot_len(struct iphdr* iph, uint16_t new_val) {
 	void *p = (void *)&(iph->tot_len);
-	update_ip_csum_byte(iph, p, *new_val);
-	update_ip_csum_byte(iph, p+1, *(new_val+1));
+	update_ip_csum_byte(iph, p, *(uint8_t *)(&new_val);
+	update_ip_csum_byte(iph, p+1, *((uint8_t *)(&new_val)+1));
 }
 
 
@@ -416,7 +416,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 
 							uint16_t new_tot_len = bpf_ntohs(iph->tot_len) + padding_added;
-							update_ip_tot_len(iph, (uint8_t *)new_tot_len);
+							update_ip_tot_len(iph, new_tot_len);
 
 							tcph->doff = SYN_PAD_MIN_DOFF;
 
