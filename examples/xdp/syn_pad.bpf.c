@@ -227,12 +227,12 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
 //   tcph->check = (unsigned short)sum;
 // }
 
-static __always_inline uint16_t tcp_csum(const void *buff, uint32_t src_addr, uint32_t dest_addr) {
+static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
 	const uint16_t *buf=buff;
 	uint16_t *ip_src=(void *)&src_addr;
 	uint16_t *ip_dst=(void *)&dest_addr;
 	uint32_t sum;
-	size_t length=sizeof((struct tcphdr *) buff);
+	size_t length = len;
 
 	// Calculate the sum                                            //
 	sum = 0;
@@ -342,7 +342,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 								zero_op_bytes(tcpop);
-								did_zero=tcpop->byte1;
+								// did_zero=1;
 								// #pragma unroll
 								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
 								// 	tcpop->bytes[i] = NO_OP_VAL;
@@ -352,11 +352,11 @@ int xdp_pass(struct xdp_md *ctx) {
 
 
 							set_ip_csum(iph);
-							tcp_len = sizeof(*tcph) + SYN_PAD_MIN_BYTES;
+							tcp_len = sizeof(*tcph);
 							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
 							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
 							tcph->check = 0;
-							tcph->check = tcp_csum((unsigned short *)tcph, ip_saddr, ip_daddr);
+							tcph->check = tcp_csum((unsigned short *)tcph, tcplen, ip_saddr, ip_daddr);
 						}
 					}
 				}
@@ -373,7 +373,7 @@ int xdp_pass(struct xdp_md *ctx) {
 				bpf_printk("WARNING: Failed to reserve space in ring buffer\n");
 				return XDP_PASS;
 			}
-			e->status = did_zero;
+			e->status = 1;
 			e->start = start_time;
 			e->end = end_time;
 			e->padding = padding_added;
