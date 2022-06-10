@@ -296,7 +296,17 @@ static __always_inline void update_tcp_doff(struct tcphdr* tcph, uint8_t new_val
 //   //protocol and reserved: 6
 //   sum += bpf_htons(IPPROTO_TCP);
 //   //the length
-//   sum += bpf_htons(tcpLen);
+//   sum += bpf_htons(tcpLen)
+#define GENERATE_EVENTS 1
+#define MEASURE_TIME 1
+#define SYN_PAD_MIN_DOFF 15
+
+const unsigned int SYN_PAD_MIN_BYTES = 40;
+
+const unsigned char SYN_PAD_MIN_DOFF = 15;
+const unsigned char END_OP_VAL = 0;
+const unsigned char NO_OP_VAL = 1;
+;
 //
 //   //add the IP payload
 //   //initialize checksum to 0
@@ -449,7 +459,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint16_t new_tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 							update_ip_tot_len(iph, new_tot_len);
 
-							uint8_t new_doff = bpf_htons(SYN_PAD_MIN_DOFF);
+							uint8_t new_doff = bpf_htons(15);
 							update_tcp_doff(tcph, new_doff);
 
 							// iph->check = 0;
