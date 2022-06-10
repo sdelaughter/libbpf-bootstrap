@@ -200,7 +200,7 @@ static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint
 	unsigned long sum;
 	unsigned short old;
 	old = bpf_ntohs(*(unsigned short *)p);
-	*p = new_val;
+	*(uint8_t *)p = new_val;
 	sum = old + (~bpf_ntohs(*(unsigned short *)p) & 0xffff);
 	sum += bpf_ntohs(iph->check);
 	sum = (sum & 0xffff) + (sum>>16);
