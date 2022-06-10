@@ -114,13 +114,13 @@ struct {
 	__uint(max_entries, 256 * 1024);
 } rb SEC(".maps");
 
-struct pseudo_header {
-	uint32_t source_address;
-	uint32_t dest_address;
-	uint8_t placeholder;
-	uint8_t protocol;
-	uint16_t tcp_length;
-};
+// struct pseudo_header {
+// 	uint32_t source_address;
+// 	uint32_t dest_address;
+// 	uint8_t placeholder;
+// 	uint8_t protocol;
+// 	uint16_t tcp_length;
+// };
 
 static __always_inline bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
@@ -333,64 +333,64 @@ static __always_inline void update_tcp_doff(struct tcphdr* tcph, uint16_t new_va
 //   tcph->check = (unsigned short)sum;
 // }
 
-static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
-	const uint16_t *buf=buff;
-	uint16_t *ip_src=(void *)&src_addr;
-	uint16_t *ip_dst=(void *)&dest_addr;
-	uint32_t sum;
-	size_t length = len;
-
-	// Calculate the sum                                            //
-	sum = 0;
-	while (len > 1) {
-		sum += *buf++;
-		if (sum & 0x80000000) {
-			sum = (sum & 0xFFFF) + (sum >> 16);
-		}
-		len -= 2;
-	}
-
-	// Don't need this, the padding we add already ensures the length won't be odd
-
-	// if ( len & 1 ) {
-	// 	// Add the padding if the packet length is odd          //
-	// 	sum += *((uint8_t *)buf);
-	// }
-
-	// Add the pseudo-header                                        //
-	sum += *(ip_src++);
-	sum += *ip_src;
-	sum += *(ip_dst++);
-	sum += *ip_dst;
-	sum += bpf_htons(IPPROTO_TCP);
-	sum += bpf_htons(length);
-
-	// Add the carries                                              //
-	while (sum >> 16) {
-	   sum = (sum & 0xFFFF) + (sum >> 16);
-	}
-
-	// Return the one's complement of sum                           //
-	return ( (uint16_t)(~sum)  );
-}
-
-static __always_inline void compute_tcp_csum(tcphdr * tcph, uint32_t* saddr, uint32_t* d_addr, void* payload, size_t payload_len) {
-	struct pseudo_header psh;
-	psh.source_address = *saddr;
-	psh.dest_address = *daddr;
-	psh.placeholder = 0;
-	psh.protocol = IPPROTO_TCP;
-	psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data));
-
-	int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + payload_len;
-	pseudogram = malloc(psize);
-
-	memcpy(pseudogram, (char*) &psh, sizeof (struct pseudo_header));
-	memcpy(pseudogram + sizeof(struct pseudo_header), tcph, sizeof(struct tcphdr) + strlen(data));
-
-	tcph->check = csum((unsigned short*) pseudogram, psize);
-	free pseudogram;
-}
+// static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
+// 	const uint16_t *buf=buff;
+// 	uint16_t *ip_src=(void *)&src_addr;
+// 	uint16_t *ip_dst=(void *)&dest_addr;
+// 	uint32_t sum;
+// 	size_t length = len;
+//
+// 	// Calculate the sum                                            //
+// 	sum = 0;
+// 	while (len > 1) {
+// 		sum += *buf++;
+// 		if (sum & 0x80000000) {
+// 			sum = (sum & 0xFFFF) + (sum >> 16);
+// 		}
+// 		len -= 2;
+// 	}
+//
+// 	// Don't need this, the padding we add already ensures the length won't be odd
+//
+// 	// if ( len & 1 ) {
+// 	// 	// Add the padding if the packet length is odd          //
+// 	// 	sum += *((uint8_t *)buf);
+// 	// }
+//
+// 	// Add the pseudo-header                                        //
+// 	sum += *(ip_src++);
+// 	sum += *ip_src;
+// 	sum += *(ip_dst++);
+// 	sum += *ip_dst;
+// 	sum += bpf_htons(IPPROTO_TCP);
+// 	sum += bpf_htons(length);
+//
+// 	// Add the carries                                              //
+// 	while (sum >> 16) {
+// 	   sum = (sum & 0xFFFF) + (sum >> 16);
+// 	}
+//
+// 	// Return the one's complement of sum                           //
+// 	return ( (uint16_t)(~sum)  );
+// }
+//
+// static __always_inline void compute_tcp_csum(tcphdr * tcph, uint32_t* saddr, uint32_t* d_addr, void* payload, size_t payload_len) {
+// 	struct pseudo_header psh;
+// 	psh.source_address = *saddr;
+// 	psh.dest_address = *daddr;
+// 	psh.placeholder = 0;
+// 	psh.protocol = IPPROTO_TCP;
+// 	psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data));
+//
+// 	int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + payload_len;
+// 	pseudogram = malloc(psize);
+//
+// 	memcpy(pseudogram, (char*) &psh, sizeof (struct pseudo_header));
+// 	memcpy(pseudogram + sizeof(struct pseudo_header), tcph, sizeof(struct tcphdr) + strlen(data));
+//
+// 	tcph->check = csum((unsigned short*) pseudogram, psize);
+// 	free pseudogram;
+// }
 
 
 SEC("xdp")
