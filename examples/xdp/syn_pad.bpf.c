@@ -147,12 +147,12 @@ static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
 	size_t len = iph->ihl * 4;
 	uint16_t * bytes = (uint16_t *)((void *)iph);
   register uint32_t sum = 0;
-  while (count > 1) {
+  while (len > 1) {
     sum += * bytes++;
-    count -= 2;
+    len -= 2;
   }
   //if any bytes left, pad the bytes and add
-  if(count > 0) {
+  if(len > 0) {
     sum += ((*bytes)&bpf_htons(0xFF00));
   }
   //Fold sum to 16 bits: add carrier to result
