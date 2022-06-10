@@ -13,6 +13,7 @@ const unsigned int SYN_PAD_MIN_BYTES = 40;
 const unsigned char SYN_PAD_MIN_DOFF = 15;
 const unsigned char END_OP_VAL = 0;
 const unsigned char NO_OP_VAL = 1;
+const unsigned char PAYLOAD_PAD = 64;
 
 
 struct event {
