@@ -296,17 +296,7 @@ static __always_inline void update_tcp_doff(struct tcphdr* tcph, uint8_t new_val
 //   //protocol and reserved: 6
 //   sum += bpf_htons(IPPROTO_TCP);
 //   //the length
-//   sum += bpf_htons(tcpLen)
-#define GENERATE_EVENTS 1
-#define MEASURE_TIME 1
-#define SYN_PAD_MIN_DOFF 15
-
-const unsigned int SYN_PAD_MIN_BYTES = 40;
-
-const unsigned char SYN_PAD_MIN_DOFF = 15;
-const unsigned char END_OP_VAL = 0;
-const unsigned char NO_OP_VAL = 1;
-;
+//   sum += bpf_htons(tcpLen);
 //
 //   //add the IP payload
 //   //initialize checksum to 0
