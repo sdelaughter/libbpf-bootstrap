@@ -415,7 +415,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// old_tot_len = iph->tot_len;
 							// iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 
-							uint16_t new_tot_len = iph->tot_len + padding_added;
+							uint16_t new_tot_len = bpf_ntohs(iph->tot_len) + padding_added;
 							update_ip_tot_len(iph, (uint8_t *)new_tot_len);
 
 							tcph->doff = SYN_PAD_MIN_DOFF;
