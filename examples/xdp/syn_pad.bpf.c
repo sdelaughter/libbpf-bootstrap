@@ -118,13 +118,13 @@ static __always_inline bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
 
-static __always_inline void update_ip_csum(struct tcphdr* tcph, __u32 old_doff) {
-  if (old_doff == tcph->ack_seq) return;
-  __sum16 sum = old_doff + (~bpf_ntohs(*(unsigned short *)&tcph->doff) & 0xffff);
-  sum += bpf_ntohs(tcph->check);
-  sum = (sum & 0xffff) + (sum>>16);
-  tcph->check = bpf_htons(sum + (sum>>16) + 1);
-}
+// static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_doff) {
+//   if (old_doff == tcph->ack_seq) return;
+//   __sum16 sum = old_doff + (~bpf_ntohs(*(unsigned short *)&tcph->doff) & 0xffff);
+//   sum += bpf_ntohs(tcph->check);
+//   sum = (sum & 0xffff) + (sum>>16);
+//   tcph->check = bpf_htons(sum + (sum>>16) + 1);
+// }
 
 static __always_inline uint16_t csum(unsigned short *buf, int bufsz) {
     unsigned long sum = 0;
