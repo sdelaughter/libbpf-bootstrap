@@ -325,7 +325,7 @@ int xdp_pass(struct xdp_md *ctx) {
 	struct tcp_options *tcpop;
 	unsigned char *padding;
 	size_t tcp_len;
-	__be16 old_ihl;
+	__be16 old_tot_len;
 
 	// Parse Ethernet Header
 	ethh = data;
