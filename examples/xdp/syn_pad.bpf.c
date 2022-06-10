@@ -459,7 +459,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint16_t new_tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 							update_ip_tot_len(iph, new_tot_len);
 
-							uint8_t new_doff = bpf_htons(15);
+							uint8_t new_doff = bpf_htons(SYN_PAD_MIN_DOFF);
 							update_tcp_doff(tcph, new_doff);
 
 							// iph->check = 0;
