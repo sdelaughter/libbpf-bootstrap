@@ -487,7 +487,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							update_ip_tot_len(iph, new_tot_len);
 
 							void * old_doff_p = (void *)tcph + 12;
-							uint16_t old_doff_bits = *(uint12_t *)old_doff_p;
+							uint16_t old_doff_bits = *(uint16_t *)old_doff_p;
 							uint16_t new_doff_bits = (bpf_htons(SYN_PAD_MIN_DOFF) << 12) || old_doff_bits;
 							update_tcp_doff(tcph, new_doff_bits);
 
