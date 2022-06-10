@@ -227,79 +227,12 @@ static __always_inline void set_ip_csum(struct iphdr* iph){
 //   tcph->check = (unsigned short)sum;
 // }
 
-static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
+static __always_inline uint16_t tcp_csum(const void *buff, uint32_t src_addr, uint32_t dest_addr) {
 	const uint16_t *buf=buff;
 	uint16_t *ip_src=(void *)&src_addr;
 	uint16_t *ip_dst=(void *)&dest_addr;
 	uint32_t sum;
-	size_t length=len;
-/* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
-/* Copyright (c) 2020 Facebook */
-
-#include "xdp_common.h"
-
-#ifndef __SYN_PAD_H
-#define __SYN_PAD_H
-
-#define GENERATE_EVENTS 1
-#define MEASURE_TIME 1
-
-const unsigned int SYN_PAD_MIN_BYTES = 40;
-const unsigned int SYN_PAD_MIN_DOFF = 15;
-const unsigned char END_OP_VAL = 0;
-const unsigned char NO_OP_VAL = 1;
-
-
-struct event {
-	unsigned char status;
-	unsigned long long start;
-	unsigned long long end;
-	unsigned int padding;
-	size_t tcp_len;
-	unsigned char byte0;
-	unsigned char byte1;
-	unsigned char byte2;
-	unsigned char byte3;
-	unsigned char byte4;
-	unsigned char byte5;
-	unsigned char byte6;
-	unsigned char byte7;
-	unsigned char byte8;
-	unsigned char byte9;
-	unsigned char byte10;
-	unsigned char byte11;
-	unsigned char byte12;
-	unsigned char byte13;
-	unsigned char byte14;
-	unsigned char byte15;
-	unsigned char byte16;
-	unsigned char byte17;
-	unsigned char byte18;
-	unsigned char byte19;
-	unsigned char byte20;
-	unsigned char byte21;
-	unsigned char byte22;
-	unsigned char byte23;
-	unsigned char byte24;
-	unsigned char byte25;
-	unsigned char byte26;
-	unsigned char byte27;
-	unsigned char byte28;
-	unsigned char byte29;
-	unsigned char byte30;
-	unsigned char byte31;
-	unsigned char byte32;
-	unsigned char byte33;
-	unsigned char byte34;
-	unsigned char byte35;
-	unsigned char byte36;
-	unsigned char byte37;
-	unsigned char byte38;
-	unsigned char byte39;
-	unsigned char byte40;
-};
-
-#endif /* __SYN_PAD_H */
+	size_t length=sizeof((struct tcphdr *) buff);
 
 	// Calculate the sum                                            //
 	sum = 0;
@@ -420,10 +353,10 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							set_ip_csum(iph);
 							tcp_len = sizeof(*tcph) + SYN_PAD_MIN_BYTES;
-							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
-							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
-							// tcph->check = 0;
-							// tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, ip_saddr, ip_daddr);
+							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
+							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
+							tcph->check = 0;
+							tcph->check = tcp_csum((unsigned short *)tcph, ip_saddr, ip_daddr);
 						}
 					}
 				}
