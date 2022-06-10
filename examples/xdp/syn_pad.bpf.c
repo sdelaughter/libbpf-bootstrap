@@ -207,16 +207,16 @@ static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint
 	iph->check = bpf_htons(sum + (sum>>16));
 }
 
-static __always_inline void update_tcp_csum_byte(struct tcphdr* tcph, void *p, uint8_t new_val) {
-	unsigned long sum;
-	unsigned short old;
-	old = *(unsigned short *)p;
-	*(uint8_t *)p = new_val;
-	sum = old + (~*(unsigned short *)p & 0xffff);
-	sum += bpf_ntohs(tcph->check);
-	sum = (sum & 0xffff) + (sum>>16);
-	tcph->check = bpf_htons(sum + (sum>>16));
-}
+// static __always_inline void update_tcp_csum_byte(struct tcphdr* tcph, void *p, uint8_t new_val) {
+// 	unsigned long sum;
+// 	unsigned short old;
+// 	old = *(unsigned short *)p;
+// 	*(uint8_t *)p = new_val;
+// 	sum = old + (~*(unsigned short *)p & 0xffff);
+// 	sum += bpf_ntohs(tcph->check);
+// 	sum = (sum & 0xffff) + (sum>>16);
+// 	tcph->check = bpf_htons(sum + (sum>>16));
+// }
 
 static __always_inline void update_ip_tot_len(struct iphdr* iph, uint16_t new_val) {
 	void *p = (void *)&(iph->tot_len);
@@ -225,9 +225,14 @@ static __always_inline void update_ip_tot_len(struct iphdr* iph, uint16_t new_va
 }
 
 static __always_inline void update_tcp_doff(struct tcphdr* tcph, uint8_t new_val) {
-	void *p = (void *)&(tcph->doff);
-	update_tcp_csum_byte(tcph, p, *(uint8_t *)(&new_val));
-	update_tcp_csum_byte(tcph, p+1, *((uint8_t *)(&new_val)+1));
+	unsigned long sum;
+	unsigned short old;
+	old = (unsigned short) tcph->doff;
+	tcph->doff = new_val;
+	sum = old + (~tcph->doff & 0xffff);
+	sum += bpf_ntohs(tcph->check);
+	sum = (sum & 0xffff) + (sum>>16);
+	tcph->check = bpf_htons(sum + (sum>>16));
 }
 
 // static void update_tcp_csum(struct iphdr* iph, struct tcphdr* tcph, __be32 old_saddr) {
@@ -444,7 +449,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint16_t new_tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 							update_ip_tot_len(iph, new_tot_len);
 
-							uint8_t new_doff = SYN_PAD_MIN_DOFF;
+							uint8_t new_doff = bpf_htons(SYN_PAD_MIN_DOFF);
 							update_tcp_doff(tcph, new_doff);
 
 							// iph->check = 0;
