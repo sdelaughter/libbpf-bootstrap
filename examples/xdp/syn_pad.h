@@ -10,7 +10,7 @@
 #define MEASURE_TIME 1
 
 const unsigned int SYN_PAD_MIN_BYTES = 40;
-const uint8_t SYN_PAD_MIN_DOFF = 15;
+const unsigned char SYN_PAD_MIN_DOFF = 15;
 const unsigned char END_OP_VAL = 0;
 const unsigned char NO_OP_VAL = 1;
 
