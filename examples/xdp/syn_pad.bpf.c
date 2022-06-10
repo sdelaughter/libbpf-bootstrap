@@ -202,9 +202,9 @@ static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint
 	old = bpf_ntohs(*(unsigned short *)p);
 	*p = new_val;
 	sum = old + (~bpf_ntohs(*(unsigned short *)p) & 0xffff);
-	sum += bpf_ntohs(iphdr->check);
+	sum += bpf_ntohs(iph->check);
 	sum = (sum & 0xffff) + (sum>>16);
-	iphdrd->check = bpf_htons(sum + (sum>>16));
+	iph->check = bpf_htons(sum + (sum>>16));
 }
 
 static __always_inline void update_ip_tot_len(struct iphdr* iph, uint8_t* new_val) {
