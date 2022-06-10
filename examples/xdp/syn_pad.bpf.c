@@ -353,10 +353,10 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							set_ip_csum(iph);
 							tcp_len = sizeof(*tcph);
-							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
-							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
-							tcph->check = 0;
-							tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, ip_saddr, ip_daddr);
+							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
+							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
+							// tcph->check = 0;
+							// tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, ip_saddr, ip_daddr);
 						}
 					}
 				}
