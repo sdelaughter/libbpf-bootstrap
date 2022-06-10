@@ -170,8 +170,8 @@ static void update_ip_csum(struct iphdr* iph, __be16 old_tot_len) {
   }
   __sum16 sum = iph->tot_len;
   sum += bpf_ntohs(iph->check);
-  sum = (sum & 0xffff) + (sum>>16);
-  iph->check = bpf_htons(sum + (sum>>16) + 1);
+  // sum = (sum & 0xffff) + (sum>>16);
+  iph->check = bpf_htons(sum);// + (sum>>16) + 1);
 }
 
 // static void update_tcp_csum(struct iphdr* iph, struct tcphdr* tcph, __be32 old_saddr) {
