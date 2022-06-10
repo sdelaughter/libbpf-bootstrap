@@ -209,8 +209,8 @@ static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint
 
 static __always_inline void update_ip_tot_len(struct iphdr* iph, uint16_t new_val) {
 	void *p = (void *)&(iph->tot_len);
-	update_ip_csum_byte(iph, p, *(uint8_t *)(&new_val));
-	update_ip_csum_byte(iph, p+1, *((uint8_t *)(&new_val)+1));
+	update_ip_csum_byte(iph, p+1, *(uint8_t *)(&new_val));
+	update_ip_csum_byte(iph, p, *((uint8_t *)(&new_val)+1));
 }
 
 
