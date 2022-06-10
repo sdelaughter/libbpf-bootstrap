@@ -168,11 +168,52 @@ static void update_ip_csum(struct iphdr* iph, __be16 old_tot_len) {
   if (old_tot_len == iph->tot_len){
     return;
   }
-  __sum16 sum = iph->tot_len;
+  __sum16 sum =  + (~bpf_ntohs(*(unsigned short *)&iph->tot_len) & 0xffff);
   sum += bpf_ntohs(iph->check);
-  // sum = (sum & 0xffff) + (sum>>16);
-  iph->check = bpf_htons(sum);// + (sum>>16) + 1);
+  sum = (sum & 0xffff) + (sum>>16);
+  iph->check = bpf_htons(sum + (sum>>16) + 1);
 }
+//
+// static __always_inline void update_ip_csum_byte(struct iphdr* iph, uint8_t *p, uint8_t new_val) {
+// 	uint8_t old_val = bpf_ntohs(*p);
+// 	uint16_t sum = bpf_ntohs(iph->check);
+// 	iph->check = bpf_htons(~check + old_val + ~new_val);
+// }
+
+//
+// UpdateTTL(iph,n)
+// struct ip_hdr *ipptr;
+// unsigned char n;
+// {
+//     unsigned long sum;
+//     unsigned short old;
+//
+//     old = ntohs(*(unsigned short *)&ipptr->ttl);
+//     ipptr->ttl -= n;
+//     sum = old + (~ntohs(*(unsigned short *)&ipptr->ttl) & 0xffff);
+//     sum += ntohs(ipptr->Checksum);
+//     sum = (sum & 0xffff) + (sum>>16);
+//     ipptr->Checksum = htons(sum + (sum>>16));
+// }
+
+static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint8_t new_val) {
+	unsigned long sum;
+	unsigned short old;
+	old = bpf_ntohs(*(unsigned short *)p);
+	*p = new_val;
+	sum = old + (~bpf_ntohs(*(unsigned short *)p) & 0xffff);
+	sum += bpf_ntohs(iphdr->check);
+	sum = (sum & 0xffff) + (sum>>16);
+	iphdrd->check = bpf_htons(sum + (sum>>16));
+}
+
+static __always_inline void update_ip_tot_len(struct iphdr* iph, uint8_t* new_val) {
+	void *p = (void *)&(iph->tot_len);
+	update_ip_csum_byte(iph, p, *new_val);
+	update_ip_csum_byte(iph, p+1, *(new_val+1));
+}
+
+
 
 // static void update_tcp_csum(struct iphdr* iph, struct tcphdr* tcph, __be32 old_saddr) {
 //   if (old_saddr == iph->saddr){
@@ -371,8 +412,12 @@ int xdp_pass(struct xdp_md *ctx) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
-							old_tot_len = iph->tot_len;
-							iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
+							// old_tot_len = iph->tot_len;
+							// iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
+
+							uint16_t new_tot_len = iph->tot_len + padding_added;
+							update_ip_tot_len(iph, (uint8_t *)new_tot_len);
+
 							tcph->doff = SYN_PAD_MIN_DOFF;
 
 							tcpop = (void *)tcph + sizeof(*tcph);
@@ -387,7 +432,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							}
 							// iph->check = 0;
 						  // iph->check = compute_checksum(iph);
-							update_ip_csum(iph, old_tot_len);
+							// update_ip_csum(iph, old_tot_len);
 
 							tcp_len = sizeof(*tcph);
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
