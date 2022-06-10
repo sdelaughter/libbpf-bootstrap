@@ -144,7 +144,7 @@ static __always_inline uint16_t csum(unsigned short *buf, int bufsz) {
 }
 
 static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
-	size_t len = (iph->ihl & 0xF0) >> 4;
+	size_t len = iph->ihl & 0xF0;
 	uint16_t * bytes = (uint16_t *)((void *)iph);
   register uint32_t sum = 0;
   while (len > 1) {
