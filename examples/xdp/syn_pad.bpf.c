@@ -374,7 +374,7 @@ int xdp_pass(struct xdp_md *ctx) {
 								// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
 							}
 							iph->check = 0;
-						  iph->check = bpf_htons(csum((unsigned short*)iph, sizeof(iph)));
+						  iph->check = csum((unsigned short*)iph, sizeof(iph));
 
 							tcp_len = sizeof(*tcph);
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
