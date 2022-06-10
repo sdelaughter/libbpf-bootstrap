@@ -164,6 +164,26 @@ static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
   return ((uint16_t)sum);
 }
 
+static void update_ip_csum(struct iphdr* iph, __be16 old_tot_len) {
+  if (old_tot_len == iph->tot_len){
+    return;
+  }
+  __sum16 sum =  + (~bpf_ntohs(*(unsigned short *)&iph->tot_len) & 0xffff);
+  sum += bpf_ntohs(iph->check);
+  sum = (sum & 0xffff) + (sum>>16);
+  iph->check = bpf_htons(sum + (sum>>16) + 1);
+}
+
+// static void update_tcp_csum(struct iphdr* iph, struct tcphdr* tcph, __be32 old_saddr) {
+//   if (old_saddr == iph->saddr){
+//     return;
+//   }
+//   __sum16 sum =  + (~ntohs(*(unsigned short *)&iph->saddr) & 0xffff);
+//   sum += ntohs(tcph->check);
+//   sum = (sum & 0xffff) + (sum>>16);
+//   tcph->check = htons(sum + (sum>>16) + 1);
+// }
+
 // static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipPayload, void *data_end) {
 //     register unsigned long sum = 0;
 //     unsigned short tcpLen = bpf_ntohs(pIph->tot_len) - (pIph->ihl<<2);
@@ -305,6 +325,7 @@ int xdp_pass(struct xdp_md *ctx) {
 	struct tcp_options *tcpop;
 	unsigned char *padding;
 	size_t tcp_len;
+	__be16 old_ihl;
 
 	// Parse Ethernet Header
 	ethh = data;
@@ -350,21 +371,23 @@ int xdp_pass(struct xdp_md *ctx) {
 						// Parse TCP Header
 						tcph = (void *)iph + sizeof(*iph);
 						if ((void *)tcph + sizeof(*tcph) <= data_end) {
+							old_tot_len = iph->tot_len;
 							iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 							tcph->doff = SYN_PAD_MIN_DOFF;
 
 							tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 								zero_op_bytes(tcpop);
-								// did_zero=1;
+								did_zero=1;
 								// #pragma unroll
 								// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
 								// 	tcpop->bytes[i] = NO_OP_VAL;
 								// }
 								// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
 							}
-							iph->check = 0;
-						  iph->check = compute_checksum(iph);
+							// iph->check = 0;
+						  // iph->check = compute_checksum(iph);
+							update_ip_csum(iph, old_tot_len);
 
 							tcp_len = sizeof(*tcph);
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
