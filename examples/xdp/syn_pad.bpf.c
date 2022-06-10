@@ -356,7 +356,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint32_t ip_saddr = bpf_ntohs(iph->saddr);
 							uint32_t ip_daddr = bpf_ntohs(iph->daddr);
 							tcph->check = 0;
-							tcph->check = tcp_csum((unsigned short *)tcph, tcplen, ip_saddr, ip_daddr);
+							tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, ip_saddr, ip_daddr);
 						}
 					}
 				}
