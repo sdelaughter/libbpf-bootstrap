@@ -126,36 +126,36 @@ static __always_inline bool is_syn(struct tcphdr* tcph) {
 //   tcph->check = bpf_htons(sum + (sum>>16) + 1);
 // }
 
-// static __always_inline uint16_t ip_checksum(void* vdata, size_t length) {
-//     // Cast the data pointer to one that can be indexed.
-//     char* data=(char*)vdata;
-//
-//     // Initialise the accumulator.
-//     uint32_t acc=0xffff;
-//
-//     // Handle complete 16-bit blocks.
-//     for (size_t i=0;i+1<length;i+=2) {
-//         uint16_t word;
-//         memcpy(&word,data+i,2);
-//         acc+=bpf_ntohs(word);
-//         if (acc>0xffff) {
-//             acc-=0xffff;
-//         }
-//     }
-//
-//     // Handle any partial block at the end of the data.
-//     if (length&1) {
-//         uint16_t word=0;
-//         memcpy(&word,data+length-1,1);
-//         acc+=bpf_ntohs(word);
-//         if (acc>0xffff) {
-//             acc-=0xffff;
-//         }
-//     }
-//
-//     // Return the checksum in network byte order.
-//     return bpf_htons(~acc);
-// }
+static __always_inline uint16_t ip_checksum(void* vdata, size_t length) {
+    // Cast the data pointer to one that can be indexed.
+    char* data=(char*)vdata;
+
+    // Initialise the accumulator.
+    uint32_t acc=0xffff;
+
+    // Handle complete 16-bit blocks.
+    for (size_t i=0;i+1<length;i+=2) {
+        uint16_t word;
+        memcpy(&word,data+i,2);
+        acc+=bpf_ntohs(word);
+        if (acc>0xffff) {
+            acc-=0xffff;
+        }
+    }
+
+    // Handle any partial block at the end of the data.
+    if (length&1) {
+        uint16_t word=0;
+        memcpy(&word,data+length-1,1);
+        acc+=bpf_ntohs(word);
+        if (acc>0xffff) {
+            acc-=0xffff;
+        }
+    }
+
+    // Return the checksum in network byte order.
+    return bpf_htons(~acc);
+}
 
 static __always_inline uint16_t csum(unsigned short *buf, int bufsz) {
     unsigned long sum = 0;
@@ -374,7 +374,7 @@ int xdp_pass(struct xdp_md *ctx) {
 								// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
 							}
 							iph->check = 0;
-						  iph->check = csum((unsigned short*)iph, sizeof(iph));
+						  iph->check = ip_checksum((void*)iph, iph->ihl*4);
 
 							tcp_len = sizeof(*tcph);
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
