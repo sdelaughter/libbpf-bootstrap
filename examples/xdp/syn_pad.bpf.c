@@ -143,13 +143,6 @@ static __always_inline unsigned short csum(unsigned short *buf, int bufsz) {
     return ~sum;
 }
 
-/* set ip checksum of a given ip header*/
-static __always_inline void set_ip_csum(struct iphdr* iph){
-	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
-  iph->check = 0;
-  iph->check = csum((unsigned short*)iph, iph->ihl<<2);
-}
-
 // static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipPayload, void *data_end) {
 //     register unsigned long sum = 0;
 //     unsigned short tcpLen = bpf_ntohs(pIph->tot_len) - (pIph->ihl<<2);
@@ -349,9 +342,9 @@ int xdp_pass(struct xdp_md *ctx) {
 								// }
 								// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
 							}
+							iph->check = 0;
+						  iph->check = csum((unsigned short*)iph, sizeof(iph));
 
-
-							set_ip_csum(iph);
 							tcp_len = sizeof(*tcph);
 							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
 							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
