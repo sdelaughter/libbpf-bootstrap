@@ -503,7 +503,7 @@ int xdp_pass(struct xdp_md *ctx) {
 
 							tcpop = (void *)tcph + sizeof(*tcph);
 							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
-								bpf_memset((uint8_t*) tcpop, (uint8_t) 0, sizeof(*tcpop));
+								bpf_memset((uint8_t*) tcpop, NO_OP_VAL, sizeof(*tcpop));
 								did_zero=1;
 							}
 							// if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
