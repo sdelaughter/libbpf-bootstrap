@@ -172,26 +172,26 @@ static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
   return ((uint16_t)sum);
 }
 
-static __always_inline uint16_t pad_checksum(uint16_t sum, uint8_t padding) {
-	size_t len = sizeof(*iph);
-	uint16_t * bytes = (uint16_t *)((void *)iph);
-  register uint32_t sum = 0;
-  while (len > 1) {
-    sum += * bytes++;
-    len -= 2;
-  }
-  //if any bytes left, pad the bytes and add
-  if(len > 0) {
-    sum += ((*bytes)&bpf_htons(0xFF00));
-  }
-  //Fold sum to 16 bits: add carrier to result
-  while (sum>>16) {
-      sum = (sum & 0xffff) + (sum >> 16);
-  }
-  //one's complement
-  sum = ~sum;
-  return ((uint16_t)sum);
-}
+// static __always_inline uint16_t pad_checksum(uint16_t sum, uint8_t padding) {
+// 	size_t len = sizeof(*iph);
+// 	uint16_t * bytes = (uint16_t *)((void *)iph);
+//   register uint32_t sum = 0;
+//   while (len > 1) {
+//     sum += * bytes++;
+//     len -= 2;
+//   }
+//   //if any bytes left, pad the bytes and add
+//   if(len > 0) {
+//     sum += ((*bytes)&bpf_htons(0xFF00));
+//   }
+//   //Fold sum to 16 bits: add carrier to result
+//   while (sum>>16) {
+//       sum = (sum & 0xffff) + (sum >> 16);
+//   }
+//   //one's complement
+//   sum = ~sum;
+//   return ((uint16_t)sum);
+// }
 
 static __always_inline void bpf_memset(uint8_t *p, uint8_t v, size_t n) {
 	#pragma unroll
