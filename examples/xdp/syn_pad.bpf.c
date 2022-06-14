@@ -193,7 +193,8 @@ static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
 //   return ((uint16_t)sum);
 // }
 
-static __always_inline void bpf_memset(uint8_t *p, uint8_t v, size_t n) {
+static __always_inline void bpf_memset(uint8_t *buff, uint8_t v, size_t n) {
+	uint8_t *p = buff;
 	#pragma unroll
 	for (size_t i=0; i<n; i++) {
 		*p=v;
