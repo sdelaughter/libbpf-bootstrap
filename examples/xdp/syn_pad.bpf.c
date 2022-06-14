@@ -172,7 +172,36 @@ static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
   return ((uint16_t)sum);
 }
 
-static void update_ip_csum(struct iphdr* iph, __be16 old_tot_len) {
+static __always_inline uint16_t pad_checksum(uint16_t sum, uint8_t padding) {
+	size_t len = sizeof(*iph);
+	uint16_t * bytes = (uint16_t *)((void *)iph);
+  register uint32_t sum = 0;
+  while (len > 1) {
+    sum += * bytes++;
+    len -= 2;
+  }
+  //if any bytes left, pad the bytes and add
+  if(len > 0) {
+    sum += ((*bytes)&bpf_htons(0xFF00));
+  }
+  //Fold sum to 16 bits: add carrier to result
+  while (sum>>16) {
+      sum = (sum & 0xffff) + (sum >> 16);
+  }
+  //one's complement
+  sum = ~sum;
+  return ((uint16_t)sum);
+}
+
+static __always_inline void bpf_memset(uint8_t *p, uint8_t v, size_t n) {
+	#pragma unroll
+	for (size_t i=0; i<n; i++) {
+		*p=v;
+		p++;
+	}
+}
+
+static __always_inline void update_ip_csum(struct iphdr* iph, __be16 old_tot_len) {
   if (old_tot_len == iph->tot_len){
     return;
   }
@@ -473,6 +502,10 @@ int xdp_pass(struct xdp_md *ctx) {
 							// iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 
 							tcpop = (void *)tcph + sizeof(*tcph);
+							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
+								bpf_memset((uint8_t*) tcpop, (uint8_t) 0, sizeof(*tcpop));
+								did_zero=1;
+							}							}
 							// if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
 							// 	zero_op_bytes(tcpop);
 							// 	did_zero=1;
