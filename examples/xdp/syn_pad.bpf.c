@@ -503,7 +503,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							// iph->tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 
 							tcpop = (uint8_t *)((void *)tcph + sizeof(*tcph));
-							if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
+							if ((void *)tcpop + sizeof(*tcpop) < data_end) {
 								bpf_memset(tcpop, NO_OP_VAL, SYN_PAD_MIN_BYTES-1);
 								uint8_t *end_op = tcpop + (SYN_PAD_MIN_BYTES-1);
 								*end_op = END_OP_VAL;
