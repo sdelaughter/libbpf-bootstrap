@@ -238,7 +238,6 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint16_t old_doff_bits = *(uint16_t *)old_doff_p;
 							uint16_t new_doff_bits = (bpf_htons(SYN_PAD_MIN_DOFF) << 12) || old_doff_bits;
 							update_tcp_doff(tcph, new_doff_bits);
-							pad_tcp_checksum(tcph, padding_added);
 							tcph->check = bpf_htons(pad_checksum(bpf_ntohs(tcph->check), (uint8_t *)padding, (size_t)padding_added));
 						}
 					}
