@@ -16,98 +16,11 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 // 	__type(value, u64);
 // } exec_start SEC(".maps");
 
-// struct tcp_options {
-// 	unsigned char bytes[SYN_PAD_MIN_BYTES];
-// };
+struct psh {
+	__be32 saddr;
+	__be32 daddr;
 
-// struct tcp_options {
-// 	unsigned char byte0;
-// 	unsigned char byte1;
-// 	unsigned char byte2;
-// 	unsigned char byte3;
-// 	unsigned char byte4;
-// 	unsigned char byte5;
-// 	unsigned char byte6;
-// 	unsigned char byte7;
-// 	unsigned char byte8;
-// 	unsigned char byte9;
-// 	unsigned char byte10;
-// 	unsigned char byte11;
-// 	unsigned char byte12;
-// 	unsigned char byte13;
-// 	unsigned char byte14;
-// 	unsigned char byte15;
-// 	unsigned char byte16;
-// 	unsigned char byte17;
-// 	unsigned char byte18;
-// 	unsigned char byte19;
-// 	unsigned char byte20;
-// 	unsigned char byte21;
-// 	unsigned char byte22;
-// 	unsigned char byte23;
-// 	unsigned char byte24;
-// 	unsigned char byte25;
-// 	unsigned char byte26;
-// 	unsigned char byte27;
-// 	unsigned char byte28;
-// 	unsigned char byte29;
-// 	unsigned char byte30;
-// 	unsigned char byte31;
-// 	unsigned char byte32;
-// 	unsigned char byte33;
-// 	unsigned char byte34;
-// 	unsigned char byte35;
-// 	unsigned char byte36;
-// 	unsigned char byte37;
-// 	unsigned char byte38;
-// 	unsigned char byte39;
-// 	unsigned char byte40;
-// };
-
-// static __always_inline void zero_op_bytes(struct tcp_options *tcpop) {
-// 	tcpop->byte0=NO_OP_VAL;
-// 	tcpop->byte1=NO_OP_VAL;
-// 	tcpop->byte2=NO_OP_VAL;
-// 	tcpop->byte3=NO_OP_VAL;
-// 	tcpop->byte4=NO_OP_VAL;
-// 	tcpop->byte5=NO_OP_VAL;
-// 	tcpop->byte6=NO_OP_VAL;
-// 	tcpop->byte7=NO_OP_VAL;
-// 	tcpop->byte8=NO_OP_VAL;
-// 	tcpop->byte9=NO_OP_VAL;
-// 	tcpop->byte10=NO_OP_VAL;
-// 	tcpop->byte11=NO_OP_VAL;
-// 	tcpop->byte12=NO_OP_VAL;
-// 	tcpop->byte13=NO_OP_VAL;
-// 	tcpop->byte14=NO_OP_VAL;
-// 	tcpop->byte15=NO_OP_VAL;
-// 	tcpop->byte16=NO_OP_VAL;
-// 	tcpop->byte17=NO_OP_VAL;
-// 	tcpop->byte18=NO_OP_VAL;
-// 	tcpop->byte19=NO_OP_VAL;
-// 	tcpop->byte20=NO_OP_VAL;
-// 	tcpop->byte21=NO_OP_VAL;
-// 	tcpop->byte23=NO_OP_VAL;
-// 	tcpop->byte22=NO_OP_VAL;
-// 	tcpop->byte24=NO_OP_VAL;
-// 	tcpop->byte25=NO_OP_VAL;
-// 	tcpop->byte26=NO_OP_VAL;
-// 	tcpop->byte27=NO_OP_VAL;
-// 	tcpop->byte28=NO_OP_VAL;
-// 	tcpop->byte29=NO_OP_VAL;
-// 	tcpop->byte30=NO_OP_VAL;
-// 	tcpop->byte31=NO_OP_VAL;
-// 	tcpop->byte32=NO_OP_VAL;
-// 	tcpop->byte33=NO_OP_VAL;
-// 	tcpop->byte34=NO_OP_VAL;
-// 	tcpop->byte35=NO_OP_VAL;
-// 	tcpop->byte36=NO_OP_VAL;
-// 	tcpop->byte37=NO_OP_VAL;
-// 	tcpop->byte38=NO_OP_VAL;
-// 	tcpop->byte39=NO_OP_VAL;
-// 	tcpop->byte40=END_OP_VAL;
-// }
-
+}
 
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -125,14 +38,6 @@ struct {
 static __always_inline bool is_syn(struct tcphdr* tcph) {
 	return (tcph->syn && !(tcph->ack) && !(tcph->fin) &&!(tcph->rst) &&!(tcph->psh));
 }
-
-// static __always_inline void update_tcp_csum(struct tcphdr* tcph, __u32 old_doff) {
-//   if (old_doff == tcph->ack_seq) return;
-//   __sum16 sum = old_doff + (~bpf_ntohs(*(unsigned short *)&tcph->doff) & 0xffff);
-//   sum += bpf_ntohs(tcph->check);
-//   sum = (sum & 0xffff) + (sum>>16);
-//   tcph->check = bpf_htons(sum + (sum>>16) + 1);
-// }
 
 static __always_inline uint16_t csum(unsigned short *buf, int bufsz) {
     unsigned long sum = 0;
@@ -172,26 +77,25 @@ static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
   return ((uint16_t)sum);
 }
 
-// static __always_inline uint16_t pad_checksum(uint16_t sum, uint8_t padding) {
-// 	size_t len = sizeof(*iph);
-// 	uint16_t * bytes = (uint16_t *)((void *)iph);
-//   register uint32_t sum = 0;
-//   while (len > 1) {
-//     sum += * bytes++;
-//     len -= 2;
-//   }
-//   //if any bytes left, pad the bytes and add
-//   if(len > 0) {
-//     sum += ((*bytes)&bpf_htons(0xFF00));
-//   }
-//   //Fold sum to 16 bits: add carrier to result
-//   while (sum>>16) {
-//       sum = (sum & 0xffff) + (sum >> 16);
-//   }
-//   //one's complement
-//   sum = ~sum;
-//   return ((uint16_t)sum);
-// }
+static __always_inline uint16_t pad_checksum(uint16_t old_sum, uint8_t* padding, size_t len) {
+	uint16_t * bytes = (uint16_t *)padding;
+  register uint32_t sum = (uint32_t)old_sum;
+  while (len > 1) {
+    sum += * bytes++;
+    len -= 2;
+  }
+  //if any bytes left, pad the bytes and add
+  if(len > 0) {
+    sum += ((*bytes)&bpf_htons(0xFF00));
+  }
+  //Fold sum to 16 bits: add carrier to result
+  while (sum>>16) {
+      sum = (sum & 0xffff) + (sum >> 16);
+  }
+  //one's complement
+  sum = ~sum;
+  return ((uint16_t)sum);
+}
 
 static __always_inline void bpf_memset(uint8_t *buff, uint8_t v, size_t n) {
 	uint8_t *p = buff;
@@ -211,28 +115,6 @@ static __always_inline void update_ip_csum(struct iphdr* iph, __be16 old_tot_len
   sum = (sum & 0xffff) + (sum>>16);
   iph->check = bpf_htons(sum + (sum>>16) + 1);
 }
-//
-// static __always_inline void update_ip_csum_byte(struct iphdr* iph, uint8_t *p, uint8_t new_val) {
-// 	uint8_t old_val = bpf_ntohs(*p);
-// 	uint16_t sum = bpf_ntohs(iph->check);
-// 	iph->check = bpf_htons(~check + old_val + ~new_val);
-// }
-
-//
-// UpdateTTL(iph,n)
-// struct ip_hdr *ipptr;
-// unsigned char n;
-// {
-//     unsigned long sum;
-//     unsigned short old;
-//
-//     old = ntohs(*(unsigned short *)&ipptr->ttl);
-//     ipptr->ttl -= n;
-//     sum = old + (~ntohs(*(unsigned short *)&ipptr->ttl) & 0xffff);
-//     sum += ntohs(ipptr->Checksum);
-//     sum = (sum & 0xffff) + (sum>>16);
-//     ipptr->Checksum = htons(sum + (sum>>16));
-// }
 
 static __always_inline void update_ip_csum_byte(struct iphdr* iph, void *p, uint8_t new_val) {
 	unsigned long sum;
@@ -266,162 +148,7 @@ static __always_inline void update_tcp_doff(struct tcphdr* tcph, uint16_t new_va
 	void *p = (void *)tcph + 12;
 	update_tcp_csum_byte(tcph, p, *(uint8_t *)(&new_val));
 	update_tcp_csum_byte(tcph, p+1, *((uint8_t *)(&new_val)+1));
-	// unsigned long sum;
-	// unsigned short old;
-	// old = (unsigned short) tcph->doff;
-	// tcph->doff = new_val;
-	// sum = old + (~tcph->doff & 0xffff);
-	// sum += bpf_ntohs(tcph->check);
-	// sum = (sum & 0xffff) + (sum>>16);
-	// tcph->check = bpf_htons(sum + (sum>>16));
 }
-
-// static void update_tcp_csum(struct iphdr* iph, struct tcphdr* tcph, __be32 old_saddr) {
-//   if (old_saddr == iph->saddr){
-//     return;
-//   }
-//   __sum16 sum =  + (~ntohs(*(unsigned short *)&iph->saddr) & 0xffff);
-//   sum += ntohs(tcph->check);
-//   sum = (sum & 0xffff) + (sum>>16);
-//   tcph->check = htons(sum + (sum>>16) + 1);
-// }
-
-// static __always_inline void set_tcp_csum(struct iphdr *pIph, unsigned short *ipPayload, void *data_end) {
-//     register unsigned long sum = 0;
-//     unsigned short tcpLen = bpf_ntohs(pIph->tot_len) - (pIph->ihl<<2);
-//     struct tcphdr *tcphdrp = (struct tcphdr*)(ipPayload);
-//     //add the pseudo header
-//     //the source ip
-//     sum += (pIph->saddr>>16)&0xFFFF;
-//     sum += (pIph->saddr)&0xFFFF;
-//     //the dest ip
-//     sum += (pIph->daddr>>16)&0xFFFF;
-//     sum += (pIph->daddr)&0xFFFF;
-//     //protocol and reserved: 6
-//     sum += bpf_htons(IPPROTO_TCP);
-//     //the length
-//     sum += bpf_htons(tcpLen);
-//
-//     //add the IP payload
-//     //initialize checksum to 0
-//     tcphdrp->check = 0;
-//     while (tcpLen > 1) {
-//         sum += * ipPayload++;
-//         tcpLen -= 2;=NO_OP_VAL
-//     }
-//     //if any bytes left, pad the bytes and add
-//     if(tcpLen > 0 && (void *)ipPayload <= data_end) {
-//         //printf("+++++++++++padding, %dn", tcpLen);
-//         sum += ((*ipPayload)&bpf_htons(0xFF00));
-//     }
-//     //Fold 32-bit sum to 16 bits: add carrier to result
-//     while (sum>>16) {
-//         sum = (sum & 0xffff) + (sum >> 16);
-//     }
-//     sum = ~sum;
-//     //set computation result
-//     tcphdrp->check = (unsigned short)sum;
-// }
-
-// static __always_inline void set_tcp_csum(struct iphdr *iph, struct tcphdr *tcph) {
-// 	//From https://gist.github.com/david-hoze/0c7021434796997a4ca42d7731a7073a
-//   register unsigned long sum = 0;
-//   unsigned short tcpLen = bpf_ntohs(iph->tot_len) - (iph->ihl<<2);
-//   //add the pseudo header
-//   //the source ip
-//   sum += (iph->saddr>>16)&0xFFFF;
-//   sum += (iph->saddr)&0xFFFF;
-//   //the dest ip
-//   sum += (iph->daddr>>16)&0xFFFF;
-//   sum += (iph->daddr)&0xFFFF;
-//   //protocol and reserved: 6
-//   sum += bpf_htons(IPPROTO_TCP);
-//   //the length
-//   sum += bpf_htons(tcpLen);
-//
-//   //add the IP payload
-//   //initialize checksum to 0
-//   tcph->check = 0;padding_added
-//   while (tcpLen > 1) {
-// 	  sum += * (unsigned long *)tcph++;
-// 	  tcpLen -= 2;
-//   }
-//
-// 	//if any bytes left, pad the bytes and add
-//   if(tcpLen > 0) {
-//     //printf("+++++++++++padding, %dn", tcpLen);
-//     sum += ((*(unsigned long *)tcph)&bpf_htons(0xFF00));
-//   }
-//
-//   //Fold 32-bit sum to 16 bits: add carrier to result
-//   while (sum>>16) {
-//     sum = (sum & 0xffff) + (sum >> 16);
-//   }
-//   sum = ~sum;
-//
-// 	//set computation result
-//   tcph->check = (unsigned short)sum;
-// }
-
-// static __always_inline uint16_t tcp_csum(const void *buff, size_t len, uint32_t src_addr, uint32_t dest_addr) {
-// 	const uint16_t *buf=buff;
-// 	uint16_t *ip_src=(void *)&src_addr;
-// 	uint16_t *ip_dst=(void *)&dest_addr;
-// 	uint32_t sum;
-// 	size_t length = len;
-//
-// 	// Calculate the sum                                            //
-// 	sum = 0;
-// 	while (len > 1) {
-// 		sum += *buf++;
-// 		if (sum & 0x80000000) {
-// 			sum = (sum & 0xFFFF) + (sum >> 16);
-// 		}
-// 		len -= 2;
-// 	}
-//
-// 	// Don't need this, the padding we add already ensures the length won't be odd
-//
-// 	// if ( len & 1 ) {
-// 	// 	// Add the padding if the packet length is odd          //
-// 	// 	sum += *((uint8_t *)buf);
-// 	// }
-//
-// 	// Add the pseudo-header                                        //
-// 	sum += *(ip_src++);
-// 	sum += *ip_src;
-// 	sum += *(ip_dst++);
-// 	sum += *ip_dst;
-// 	sum += bpf_htons(IPPROTO_TCP);
-// 	sum += bpf_htons(length);
-//
-// 	// Add the carries                                              //
-// 	while (sum >> 16) {
-// 	   sum = (sum & 0xFFFF) + (sum >> 16);
-// 	}
-//
-// 	// Return the one's complement of sum                           //
-// 	return ( (uint16_t)(~sum)  );
-// }
-//
-// static __always_inline void compute_tcp_csum(tcphdr * tcph, uint32_t* saddr, uint32_t* d_addr, void* payload, size_t payload_len) {
-// 	struct pseudo_header psh;
-// 	psh.source_address = *saddr;
-// 	psh.dest_address = *daddr;
-// 	psh.placeholder = 0;
-// 	psh.protocol = IPPROTO_TCP;
-// 	psh.tcp_length = htons(sizeof(struct tcphdr) + strlen(data));
-//
-// 	int psize = sizeof(struct pseudo_header) + sizeof(struct tcphdr) + payload_len;
-// 	pseudogram = malloc(psize);
-//
-// 	memcpy(pseudogram, (char*) &psh, sizeof (struct pseudo_header));
-// 	memcpy(pseudogram + sizeof(struct pseudo_header), tcph, sizeof(struct tcphdr) + strlen(data));
-//
-// 	tcph->check = csum((unsigned short*) pseudogram, psize);
-// 	free pseudogram;
-// }
-
 
 SEC("xdp")
 int xdp_pass(struct xdp_md *ctx) {
@@ -509,15 +236,6 @@ int xdp_pass(struct xdp_md *ctx) {
 								*end_op = END_OP_VAL;
 								did_zero=1;
 							}
-							// if ((void *)tcpop + sizeof(*tcpop) <= data_end) {
-							// 	zero_op_bytes(tcpop);
-							// 	did_zero=1;
-							// 	// #pragma unroll
-							// 	// for (int i=n_tcp_op_bytes+1; i < SYN_PAD_MIN_BYTES - 1; i++) {
-							// 	// 	tcpop->bytes[i] = NO_OP_VAL;
-							// 	// }
-							// 	// tcpop->bytes[SYN_PAD_MIN_BYTES - 1] = END_OP_VAL;
-							// }
 
 							uint16_t new_tot_len = bpf_htons(bpf_ntohs(iph->tot_len) + padding_added);
 							update_ip_tot_len(iph, new_tot_len);
@@ -526,16 +244,8 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint16_t old_doff_bits = *(uint16_t *)old_doff_p;
 							uint16_t new_doff_bits = (bpf_htons(SYN_PAD_MIN_DOFF) << 12) || old_doff_bits;
 							update_tcp_doff(tcph, new_doff_bits);
-
-							// iph->check = 0;
-						  // iph->check = compute_checksum(iph);
-							// update_ip_csum(iph, old_tot_len);
-
-							// tcp_len = sizeof(*tcph) + n_tcp_op_bytes + PAYLOAD_PAD;
-							// uint32_t ip_saddr = bpf_ntohs(iph->saddr);
-							// uint32_t ip_daddr = bpf_ntohs(iph->daddr);
-							// tcph->check = 0;
-							// tcph->check = tcp_csum((unsigned short *)tcph, tcp_len, ip_saddr, ip_daddr);
+							pad_tcp_checksum(tcph, padding_added);
+							tcph->check = pad_checksum(tcph->check, (uint8_t *)padding, (size_t)padding_added);
 						}
 					}
 				}
