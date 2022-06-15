@@ -56,7 +56,7 @@ static __always_inline uint16_t csum(unsigned short *buf, int bufsz) {
     return ~sum;
 }
 
-static __always_inline uint16_t compute_checksum(struct iphdr *iph) {
+static __always_inline uint16_t compute_ip_csum(struct iphdr *iph) {
 	size_t len = sizeof(*iph);
 	uint16_t * bytes = (uint16_t *)((void *)iph);
   register uint32_t sum = 0;
@@ -245,7 +245,7 @@ int xdp_pass(struct xdp_md *ctx) {
 							uint16_t new_doff_bits = (bpf_htons(SYN_PAD_MIN_DOFF) << 12) || old_doff_bits;
 							update_tcp_doff(tcph, new_doff_bits);
 							pad_tcp_checksum(tcph, padding_added);
-							tcph->check = pad_checksum(tcph->check, (uint8_t *)padding, (size_t)padding_added);
+							tcph->check = bpf_htons(pad_checksum(bpf_ntohs(tcph->check), (uint8_t *)padding, (size_t)padding_added));
 						}
 					}
 				}
