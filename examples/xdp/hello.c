@@ -38,6 +38,9 @@ static int bpf_object__attach_skeleton_net(struct bpf_object_skeleton *s) {
 		struct bpf_program *prog = *s->progs[i].prog;
 		struct bpf_link **link = s->progs[i].link;
 
+		// bpf_program__set_type (prog, enum bpf_prog_type type)
+		bpf_program__set_type (prog, BPF_PROG_TYPE_SK_SKB);
+
 		// if (!prog->load)
 		// 	continue;
 		//
